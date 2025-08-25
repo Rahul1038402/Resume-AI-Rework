@@ -13,7 +13,6 @@ HEADERS = [
     "hackathons", "competitions", "volunteer", "volunteering"
 ]
 
-
 # ---------- TEXT EXTRACTION ----------
 def extract_text_from_pdf(pdf_path: str) -> str:
     """Extract plain text from a PDF resume."""
@@ -23,16 +22,16 @@ def extract_text_from_pdf(pdf_path: str) -> str:
         text += page.get_text("text") + "\n"
     return text
 
-
 def extract_text_from_docx(docx_path: str) -> str:
     """Extract plain text from a DOCX resume."""
     doc = Document(docx_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-
+# ---------- ENHANCED SKILLS EXTRACTION ----------
 def extract_skills(text: str):
     """
-    Fixed skills extraction with precise regex patterns to avoid false positives.
+    Enhanced skills extraction with precise regex patterns to avoid false positives.
+    Returns properly formatted skills for consistency with existing codebase.
     """
     skill_patterns = {
         # Programming Languages - More precise patterns
@@ -49,7 +48,7 @@ def extract_skills(text: str):
         'kotlin': r'\bkotlin\b(?!\w)',
         'swift': r'\bswift\b(?!\w)',
         'scala': r'\bscala\b(?!\w)',
-        'r': r'\br\b(?=\s|$|[,.])',  # More careful R matching
+        'r': r'\br\b(?=\s|$|[,.])',
         'matlab': r'\bmatlab\b(?!\w)',
         'perl': r'\bperl\b(?!\w)',
         
@@ -80,9 +79,9 @@ def extract_skills(text: str):
         'ruby on rails': r'\b(?:rails|ruby\s*on\s*rails)\b',
         
         # API patterns - FIXED to avoid false positives
-        'rest apis': r'\brest\s+apis?\b',  # Only matches "REST API" or "REST APIs"
-        'rest': r'\brest\b(?=\s+(?:api|endpoint|service))',  # Only when followed by API-related terms
-        'api': r'\bapis?\b(?=\s|$|[,.])',  # Standalone API mentions only
+        'rest apis': r'\brest\s+apis?\b',
+        'rest': r'\brest\b(?=\s+(?:api|endpoint|service))',
+        'api': r'\bapis?\b(?=\s|$|[,.])',
         'jwt': r'\b(?:jwt|json\s*web\s*token)\b',
         
         # Databases
@@ -101,9 +100,8 @@ def extract_skills(text: str):
         # Data Science & ML - FIXED AI patterns
         'machine learning': r'\bmachine\s*learning\b',
         'deep learning': r'\bdeep\s*learning\b',
-        # FIXED: Only match standalone "AI", not part of other words
         'artificial intelligence': r'\b(?:artificial\s*intelligence)\b|(?<!\w)ai(?!\w)(?=\s|$|[,.])',
-        'nlp': r'\bnlp\b(?=\s|$|[,.])',  # Only standalone NLP
+        'nlp': r'\bnlp\b(?=\s|$|[,.])',
         'computer vision': r'\bcomputer\s*vision\b',
         'data analysis': r'\bdata\s*(?:analysis|analytics)\b',
         'statistics': r'\bstatistics\b(?!\w)',
@@ -136,7 +134,7 @@ def extract_skills(text: str):
         'ansible': r'\bansible\b(?!\w)',
         
         # Development Tools
-        'visual studio code': r'\b(?:vs\s*code|visual\s*studio\s*code)\b',
+        'vs code': r'\b(?:vs\s*code|visual\s*studio\s*code)\b',
         'intellij idea': r'\b(?:intellij(?:\s*idea)?)\b',
         'eclipse': r'\beclipse\b(?!\w)',
         'xcode': r'\bxcode\b(?!\w)',
@@ -146,160 +144,204 @@ def extract_skills(text: str):
         'slack': r'\bslack\b(?!\w)',
         'jira': r'\bjira\b(?!\w)',
         'confluence': r'\bconfluence\b(?!\w)',
-    }
-    
-    # Display names mapping (same as before)
-    display_names = {
-        'python': 'python',
-        'javascript': 'javascript',
-        'typescript': 'typescript',
-        'java': 'java',
-        'c++': 'c++',
-        'c#': 'c#',
-        'php': 'php',
-        'ruby': 'ruby',
-        'go': 'go',
-        'rust': 'rust',
-        'kotlin': 'kotlin',
-        'swift': 'swift',
-        'scala': 'scala',
-        'r': 'r',
-        'matlab': 'matlab',
-        'perl': 'perl',
-        'html5': 'html5',
-        'css': 'css',
-        'react': 'react',
-        'angular': 'angular',
-        'vue.js': 'vue',
-        'redux': 'redux',
-        'vuex': 'vuex',
-        'bootstrap': 'bootstrap',
-        'tailwind css': 'tailwind',
-        'sass': 'sass',
-        'scss': 'scss',
-        'less': 'less',
-        'jquery': 'jquery',
-        'graphql': 'graphql',
-        'node.js': 'node.js',
-        'express': 'express',
-        'flask': 'flask',
-        'django': 'django',
-        'fastapi': 'fastapi',
-        'spring boot': 'spring',
-        'laravel': 'laravel',
-        'ruby on rails': 'rails',
-        'rest apis': 'rest',
-        'rest': 'rest',
-        'api': 'api',
-        'jwt': 'jwt',
-        'mysql': 'mysql',
-        'postgresql': 'postgresql',
-        'mongodb': 'mongodb',
-        'redis': 'redis',
-        'sqlite': 'sqlite',
-        'oracle': 'oracle',
-        'sql server': 'sql server',
-        'dynamodb': 'dynamodb',
-        'elasticsearch': 'elasticsearch',
-        'firebase': 'firebase',
-        'cassandra': 'cassandra',
-        'machine learning': 'machine learning',
-        'deep learning': 'deep learning',
-        'artificial intelligence': 'artificial intelligence',
-        'nlp': 'nlp',
-        'computer vision': 'computer vision',
-        'data analysis': 'data analysis',
-        'statistics': 'statistics',
-        'numpy': 'numpy',
-        'pandas': 'pandas',
-        'scikit-learn': 'scikit-learn',
-        'tensorflow': 'tensorflow',
-        'pytorch': 'pytorch',
-        'keras': 'keras',
-        'matplotlib': 'matplotlib',
-        'seaborn': 'seaborn',
-        'jupyter': 'jupyter',
-        'anaconda': 'anaconda',
-        'aws': 'aws',
-        'azure': 'azure',
-        'google cloud': 'google cloud',
-        'docker': 'docker',
-        'kubernetes': 'kubernetes',
-        'jenkins': 'jenkins',
-        'git': 'git',
-        'github': 'github',
-        'gitlab': 'gitlab',
-        'ci/cd': 'ci/cd',
-        'terraform': 'terraform',
-        'ansible': 'ansible',
-        'visual studio code': 'vs code',
-        'intellij idea': 'intellij',
-        'eclipse': 'eclipse',
-        'xcode': 'xcode',
-        'figma': 'figma',
-        'photoshop': 'photoshop',
-        'illustrator': 'illustrator',
-        'slack': 'slack',
-        'jira': 'jira',
-        'confluence': 'confluence',
-        'opencv': 'opencv',
-        'mediapipe': 'mediapipe',
-        'spacy': 'spacy',
+        'vite': r'\bvite\b(?!\w)',
     }
     
     found_skills = set()
     text_lower = text.lower()
     
-    # Single pass through all patterns with debugging
     for skill_key, pattern in skill_patterns.items():
         if re.search(pattern, text_lower, re.IGNORECASE):
             found_skills.add(skill_key)
     
-    result = sorted([display_names[skill] for skill in found_skills])
-    return result
+    # Return properly formatted skills sorted (matches your existing return format)
+    return sorted(list(found_skills))
 
-
-# Test with the resume text
-resume_text = """
-Rahul Kumar Mall
-Software Developer
-rahul1038402@gmail.com
-TECHNICAL SKILLS
-Frontend: HTML5, CSS3, JavaScript, React, TypeScript, Tailwind
-CSS
-Backend: Node.js, Python, Flask, Express.js, REST
-APIs
-Database: MySQL, MongoDB, PostgreSQL,
-Firebase
-Tools: Git, GitHub, VS Code, Figma, Docker, AWS
-PROJECTS
-Posture AI
-Technologies: Technologies: React, FastAPI, OpenCV, MediaPipe, Tailwind
-• Built a full-stack posture detection app using MediaPipe and rule-based logic, achieving 92% accuracy on test videos.
-• Enabled real-time webcam and video analysis with visual feedback, boosting user engagement by ~40%.
-• Optimized FastAPI backend for low-latency processing (<300ms/frame) and reduced UI load time by ~25%.
-ResumeAI
-Technologies: Technologies: React, Flask, Python, spaCy, Tailwind
-• Built a resume analyzer using React and Flask to match resumes with job descriptions via spaCy-based NLP, improving
-keyword extraction accuracy by 85%.
-• Designed an interactive UI with Tailwind CSS to display dynamic match scores, increasing user clarity and usability by ~40%.
-• Finalist in AKTU AI Tech Hackathon 2025 among 1500+ participants, recognized for originality and practical impact.
-EDUCATION
-Bachelor of Technology - Computer Science and Engineering
-JSS Academy of Technical Education • Expected Graduation: Jan 2027
-"""
-
-print("=== TESTING FIXED EXTRACTION ===")
-extracted_skills = extract_skills(resume_text)
-print(f"Extracted skills ({len(extracted_skills)}):")
-for i, skill in enumerate(extracted_skills, 1):
-    print(f"{i:2d}. {skill}")
+# ---------- ENHANCED SKILL MATCHING SYSTEM ----------
+def create_skill_matcher():
+    """
+    Create comprehensive skill matching function with all variations handled.
+    This fixes the Tailwind CSS and other skill matching issues.
+    """
+    # COMPREHENSIVE skill variations mapping - KEY FIX for skill matching
+    skill_variations = {
+        # Frontend frameworks/libraries
+        'React': ['React', 'ReactJS', 'React.js', 'react', 'reactjs', 'react.js'],
+        'Angular': ['Angular', 'AngularJS', 'angular', 'angularjs'],
+        'Vue.js': ['Vue', 'Vue.js', 'VueJS', 'vue', 'vue.js', 'vuejs'],
+        'Redux': ['Redux', 'redux', 'Redux.js'],
+        'jQuery': ['jQuery', 'jquery', 'JQuery'],
+        
+        # CSS Frameworks - CRITICAL FIX for Tailwind CSS matching
+        'Tailwind CSS': [
+            'Tailwind CSS', 'TailwindCSS', 'Tailwind', 'tailwind css', 
+            'tailwindcss', 'tailwind', 'TAILWIND CSS', 'TAILWINDCSS', 'TAILWIND'
+        ],
+        'Bootstrap': ['Bootstrap', 'bootstrap', 'Bootstrap CSS'],
+        'CSS': ['CSS', 'CSS3', 'css', 'css3'],
+        'Sass': ['Sass', 'SASS', 'sass'],
+        'SCSS': ['SCSS', 'scss'],
+        
+        # Programming Languages
+        'JavaScript': ['JavaScript', 'Javascript', 'JS', 'javascript', 'js'],
+        'TypeScript': ['TypeScript', 'Typescript', 'TS', 'typescript', 'ts'],
+        'Python': ['Python', 'python', 'Python3', 'python3'],
+        'Java': ['Java', 'java'],
+        'HTML5': ['HTML5', 'HTML', 'html5', 'html'],
+        'C++': ['C++', 'c++', 'cpp', 'CPP'],
+        'C#': ['C#', 'c#', 'csharp', 'C-Sharp'],
+        'PHP': ['PHP', 'php'],
+        'Ruby': ['Ruby', 'ruby'],
+        'Go': ['Go', 'go', 'golang', 'Golang'],
+        'Rust': ['Rust', 'rust'],
+        'Kotlin': ['Kotlin', 'kotlin'],
+        'Swift': ['Swift', 'swift'],
+        'Scala': ['Scala', 'scala'],
+        'R': ['R', 'r'],
+        'MATLAB': ['MATLAB', 'matlab', 'Matlab'],
+        
+        # Backend
+        'Node.js': ['Node.js', 'NodeJS', 'Node', 'node.js', 'nodejs', 'node'],
+        'Express': ['Express', 'ExpressJS', 'Express.js', 'express', 'expressjs'],
+        'Flask': ['Flask', 'flask'],
+        'FastAPI': ['FastAPI', 'fastapi', 'Fast API'],
+        'Django': ['Django', 'django'],
+        'Spring Boot': ['Spring Boot', 'SpringBoot', 'Spring', 'spring boot', 'springboot'],
+        'Laravel': ['Laravel', 'laravel'],
+        'Ruby on Rails': ['Ruby on Rails', 'Rails', 'rails', 'ruby on rails'],
+        
+        # API related
+        'REST APIs': ['REST APIs', 'REST API', 'REST', 'rest apis', 'rest api', 'rest', 'RESTful'],
+        'API': ['API', 'APIs', 'api', 'apis'],
+        'JWT': ['JWT', 'jwt', 'JSON Web Token', 'json web token'],
+        'GraphQL': ['GraphQL', 'graphql', 'Graph QL'],
+        
+        # Databases
+        'MongoDB': ['MongoDB', 'Mongo', 'mongodb', 'mongo', 'MongoDb'],
+        'MySQL': ['MySQL', 'mysql', 'My SQL'],
+        'PostgreSQL': ['PostgreSQL', 'Postgres', 'postgresql', 'postgres'],
+        'Redis': ['Redis', 'redis', 'REDIS'],
+        'SQLite': ['SQLite', 'sqlite', 'Sqlite'],
+        'Oracle': ['Oracle', 'oracle', 'ORACLE'],
+        'SQL Server': ['SQL Server', 'sql server', 'SQLServer', 'Microsoft SQL Server'],
+        'DynamoDB': ['DynamoDB', 'dynamodb', 'DynamoDb'],
+        'Elasticsearch': ['Elasticsearch', 'elasticsearch', 'ElasticSearch'],
+        'Firebase': ['Firebase', 'firebase'],
+        'Cassandra': ['Cassandra', 'cassandra'],
+        
+        # Data Science & ML
+        'Machine Learning': ['Machine Learning', 'machine learning', 'ML', 'ml'],
+        'Deep Learning': ['Deep Learning', 'deep learning', 'DL', 'dl'],
+        'Artificial Intelligence': ['AI', 'ai', 'Artificial Intelligence', 'artificial intelligence'],
+        'NLP': ['NLP', 'nlp', 'Natural Language Processing', 'natural language processing'],
+        'Computer Vision': ['Computer Vision', 'computer vision', 'CV', 'cv'],
+        'Data Analysis': ['Data Analysis', 'data analysis', 'Data Analytics', 'data analytics'],
+        'Statistics': ['Statistics', 'statistics', 'Stats', 'stats'],
+        'NumPy': ['NumPy', 'numpy', 'Numpy', 'np'],
+        'Pandas': ['Pandas', 'pandas', 'pd'],
+        'Scikit-learn': ['Scikit-learn', 'scikit-learn', 'sklearn', 'Sklearn', 'Scikit learn'],
+        'TensorFlow': ['TensorFlow', 'tensorflow', 'Tensorflow', 'tf'],
+        'PyTorch': ['PyTorch', 'pytorch', 'Pytorch', 'torch'],
+        'Keras': ['Keras', 'keras'],
+        'Matplotlib': ['Matplotlib', 'matplotlib'],
+        'Seaborn': ['Seaborn', 'seaborn'],
+        'Jupyter': ['Jupyter', 'jupyter', 'Jupyter Notebook'],
+        'Anaconda': ['Anaconda', 'anaconda'],
+        'OpenCV': ['OpenCV', 'opencv', 'Open CV'],
+        'MediaPipe': ['MediaPipe', 'mediapipe', 'Media Pipe'],
+        'spaCy': ['spaCy', 'spacy', 'Spacy'],
+        
+        # Cloud & DevOps
+        'AWS': ['AWS', 'Amazon Web Services', 'aws'],
+        'Azure': ['Azure', 'Microsoft Azure', 'azure'],
+        'Google Cloud': ['Google Cloud', 'GCP', 'Google Cloud Platform', 'google cloud'],
+        'Docker': ['Docker', 'docker'],
+        'Kubernetes': ['Kubernetes', 'kubernetes', 'K8s', 'k8s'],
+        'Jenkins': ['Jenkins', 'jenkins'],
+        'CI/CD': ['CI/CD', 'ci/cd', 'CI CD', 'Continuous Integration'],
+        'Terraform': ['Terraform', 'terraform'],
+        'Ansible': ['Ansible', 'ansible'],
+        
+        # Tools
+        'Git': ['Git', 'git', 'GIT'],
+        'GitHub': ['GitHub', 'Github', 'github'],
+        'GitLab': ['GitLab', 'Gitlab', 'gitlab'],
+        'VS Code': ['VS Code', 'VSCode', 'Visual Studio Code', 'vscode'],
+        'IntelliJ IDEA': ['IntelliJ IDEA', 'IntelliJ', 'intellij', 'IntelliJ Idea'],
+        'Eclipse': ['Eclipse', 'eclipse'],
+        'Xcode': ['Xcode', 'xcode'],
+        'Figma': ['Figma', 'figma'],
+        'Photoshop': ['Photoshop', 'photoshop', 'Adobe Photoshop'],
+        'Illustrator': ['Illustrator', 'illustrator', 'Adobe Illustrator'],
+        'Slack': ['Slack', 'slack'],
+        'Jira': ['Jira', 'jira', 'JIRA'],
+        'Confluence': ['Confluence', 'confluence'],
+        'Vite': ['Vite', 'vite'],
+    }
     
+    def match_skills(candidate_skills, job_requirements):
+        """
+        Enhanced skill matching with comprehensive variation handling.
+        
+        Args:
+            candidate_skills: List of skills from resume
+            job_requirements: Dict of job skills with weights or list of skills
+        
+        Returns:
+            matched_skills: Dict of matched skills with scores
+            missing_skills: Dict of unmatched job requirements
+        """
+        # Handle case where job_requirements is a list instead of dict
+        if isinstance(job_requirements, list):
+            job_requirements = {skill: 5 for skill in job_requirements}  # Default weight of 5
+        
+        matched_skills = {}
+        missing_skills = {}
+        
+        # Normalize candidate skills for comparison
+        candidate_lower = [skill.lower() for skill in candidate_skills]
+        
+        # Check each job requirement
+        for job_skill, weight in job_requirements.items():
+            found_match = False
+            job_skill_lower = job_skill.lower()
+            
+            # Direct match first
+            if job_skill in candidate_skills or job_skill_lower in candidate_lower:
+                matched_skills[job_skill] = weight
+                found_match = True
+                continue
+            
+            # Check against skill variations
+            for standard_skill, variations in skill_variations.items():
+                # If job requirement matches any variation of a standard skill
+                if any(var.lower() == job_skill_lower for var in variations):
+                    # Check if candidate has this standard skill or any of its variations
+                    if (standard_skill in candidate_skills or 
+                        any(var in candidate_skills for var in variations) or
+                        any(var.lower() in candidate_lower for var in variations)):
+                        matched_skills[job_skill] = weight
+                        found_match = True
+                        break
+                
+                # If candidate has a standard skill, check if job requirement is a variation
+                if standard_skill in candidate_skills:
+                    if any(var.lower() == job_skill_lower for var in variations):
+                        matched_skills[job_skill] = weight
+                        found_match = True
+                        break
+            
+            if not found_match:
+                missing_skills[job_skill] = weight
+        
+        return matched_skills, missing_skills
+    
+    return match_skills
+
 # ---------- ENHANCED SKILLS NORMALIZATION ----------
 def normalize_skills(skills, return_capitalized=True, profile="general"):
     """
     Enhanced normalization with better synonym mapping and profile support.
-    Fixed to handle the corrected extraction patterns.
     """
     synonym_map = {
         # Programming Languages
@@ -326,7 +368,7 @@ def normalize_skills(skills, return_capitalized=True, profile="general"):
         "redux.js": "redux", "redux": "redux", 
         "vuex": "vuex",
         "bootstrap": "bootstrap", 
-        "tailwind": "tailwind css", "tailwindcss": "tailwind css", "tailwind css": "tailwind css",
+        "tailwind": "tailwind css", "tailwindcss": "tailwind css" , "tailwind css": "tailwind css",
         "sass": "sass", 
         "scss": "scss", 
         "less": "less",
@@ -343,9 +385,9 @@ def normalize_skills(skills, return_capitalized=True, profile="general"):
         "laravel": "laravel", 
         "rails": "ruby on rails", "ruby on rails": "ruby on rails",
         
-        # API related - Fixed mappings
+        # API related
         "rest apis": "rest apis", "rest api": "rest apis", "restful": "rest apis",
-        "rest": "rest apis",  # Map standalone REST to REST APIs for clarity
+        "rest": "rest apis",
         "apis": "api", "api": "api",
         "jwt": "jwt",
         
@@ -361,10 +403,9 @@ def normalize_skills(skills, return_capitalized=True, profile="general"):
         "elasticsearch": "elasticsearch",
         "firebase": "firebase",
         
-        # Data Science & ML - More conservative mapping
+        # Data Science & ML
         "ml": "machine learning", "machine learning": "machine learning",
         "dl": "deep learning", "deep learning": "deep learning",
-        # Only map explicit AI mentions, not from compound words
         "artificial intelligence": "artificial intelligence",
         "nlp": "nlp", "natural language processing": "nlp",
         "computer vision": "computer vision", "cv": "computer vision",
@@ -397,11 +438,12 @@ def normalize_skills(skills, return_capitalized=True, profile="general"):
         "ansible": "ansible",
         
         # Tools
-        "vs code": "visual studio code", "visual studio code": "visual studio code",
+        "vs code": "vs code", "visual studio code": "vs code",
         "intellij": "intellij idea", "intellij idea": "intellij idea",
         "figma": "figma", 
         "photoshop": "photoshop", 
         "illustrator": "illustrator",
+        "vite": "vite",
     }
     
     display_map = {
@@ -447,8 +489,9 @@ def normalize_skills(skills, return_capitalized=True, profile="general"):
         "terraform": "Terraform", "ansible": "Ansible",
         
         # Tools
-        "visual studio code": "VS Code", "intellij idea": "IntelliJ IDEA",
+        "vs code": "VS Code", "intellij idea": "IntelliJ IDEA",
         "figma": "Figma", "photoshop": "Photoshop", "illustrator": "Illustrator",
+        "vite": "Vite",
     }
     
     # Profile-specific skills
@@ -496,7 +539,6 @@ def normalize_skills(skills, return_capitalized=True, profile="general"):
     return [display_map.get(s, s.capitalize()) for s in unique_normalized] if return_capitalized else unique_normalized
 
 
-# ---------- PROJECTS & SKILLS (Enhanced for your specific format) ----------
 # ---------- PROJECTS & SKILLS (Enhanced for your specific format) ----------
 def extract_projects_with_skills(text: str):
     """Extracts project names and skills specifically for your resume format"""
@@ -564,19 +606,34 @@ def extract_projects_with_skills(text: str):
                     project_descriptions.extend(cleaned_skills)
             continue  # Skip to next line after processing technologies
         
-        # Detect project title - looking for standalone project names like "Posture AI", "ResumeAI"
-        # Should not start with bullet points, "Technologies:", or common description words
+        # Words/phrases that should NOT be treated as project titles
+        non_project_words = {
+            'link', 'links', 'github', 'demo', 'live', 'view', 'website', 'url', 
+            'source', 'code', 'repo', 'repository', 'documentation', 'docs',
+            'preview', 'hosted', 'deployed', 'visit', 'see', 'click', 'here'
+        }
+        
+        # FIXED: Updated project title detection for your specific format
+        # Your projects are formatted like "Posture AI – AI-powered posture analyzer..."
+        # or "Resume AI – Full-stack web app..."
         is_project_title = (
             not clean_line.startswith(('•', '-', '◦', '*')) and
             not low.startswith(('technologies:', 'tech stack:', 'stack:', 'built', 'developed', 
                                'created', 'implemented', 'designed', 'achieved', 'enabled', 
                                'optimized', 'finalist')) and
-            len(clean_line.split()) <= 4 and  # Project names are usually short
+            # FIXED: Increase word limit since your project titles include descriptions
+            len(clean_line.split()) <= 15 and  # Increased from 10 to 15
             # Must have at least one capitalized word (like "Posture AI")
             any(word[0].isupper() for word in clean_line.split() if word and word.isalpha()) and
-            # Not a description sentence
-            not clean_line.endswith('.') and
-            not any(desc_word in low for desc_word in ['using', 'with', 'via', 'by', 'through', 'among'])
+            # FIXED: Allow lines ending with description (your format includes descriptions)
+            # not clean_line.endswith('.') and  # Removed this restriction
+            not any(desc_word in low for desc_word in ['using', 'with', 'via', 'by', 'through', 'among']) and
+            # Filter out common non-project words
+            low not in non_project_words and
+            # Filter out single common words that appear in resumes
+            not (len(clean_line.split()) == 1 and low in non_project_words) and
+            # FIXED: Add specific check for your format with em dash or hyphen
+            ('–' in clean_line or '-' in clean_line or 'ai' in low)  # Your projects contain "AI"
         )
         
         if is_project_title:
@@ -584,7 +641,14 @@ def extract_projects_with_skills(text: str):
             if current_project and project_descriptions:
                 projects_skills[current_project] = set(project_descriptions)
             
-            current_project = clean_line
+            # FIXED: Extract just the project name before the description
+            # Split on em dash or double hyphen to get clean project name
+            if '–' in clean_line:
+                current_project = clean_line.split('–')[0].strip()
+            elif ' - ' in clean_line:
+                current_project = clean_line.split(' - ')[0].strip()
+            else:
+                current_project = clean_line
             project_descriptions = []
     
     # Handle last project
@@ -609,7 +673,7 @@ def extract_projects_with_skills(text: str):
 
 # ---------- QUANTIFIABLE IMPACT (Enhanced for your specific format) ----------
 def extract_quantifiable_impact(text: str):
-    """Enhanced extraction of quantifiable metrics for your specific resume format."""
+    """Extract any line that contains numeric data from the projects section."""  
     impacts = {}
     lines = text.splitlines()
     
@@ -640,86 +704,143 @@ def extract_quantifiable_impact(text: str):
         return {}
     
     current_project = None
-    project_descriptions = []
+    all_lines = []  # Collect ALL lines for current project
     
     for line in projects_section_lines:
         clean_line = line.strip()
         low = clean_line.lower()
         
-        # Detect project title using the same logic as extract_projects_with_skills
+        # FIXED: Use the same project detection logic as the working function
+        non_project_words = {
+            'link', 'links', 'github', 'demo', 'live', 'view', 'website', 'url', 
+            'source', 'code', 'repo', 'repository', 'documentation', 'docs',
+            'preview', 'hosted', 'deployed', 'visit', 'see', 'click', 'here'
+        }
+        
+        # FIXED: Match the working project detection logic
         is_project_title = (
             not clean_line.startswith(('•', '-', '◦', '*')) and
             not low.startswith(('technologies:', 'tech stack:', 'stack:', 'built', 'developed', 
                                'created', 'implemented', 'designed', 'achieved', 'enabled', 
                                'optimized', 'finalist')) and
-            len(clean_line.split()) <= 4 and
+            len(clean_line.split()) <= 15 and  # Match the working function
             any(word[0].isupper() for word in clean_line.split() if word and word.isalpha()) and
-            not clean_line.endswith('.') and
-            not any(desc_word in low for desc_word in ['using', 'with', 'via', 'by', 'through', 'among'])
+            not any(desc_word in low for desc_word in ['using', 'with', 'via', 'by', 'through', 'among']) and
+            low not in non_project_words and
+            not (len(clean_line.split()) == 1 and low in non_project_words) and
+            ('–' in clean_line or '-' in clean_line or 'ai' in low)  # Match the working function
         )
         
         if is_project_title:
-            # Save previous project's quantifiable lines
-            if current_project and project_descriptions:
-                # Enhanced regex pattern to catch more quantifiable metrics
-                numeric_lines = [
-                    desc for desc in project_descriptions 
-                    if re.search(
-                        r'\d+(?:\.\d+)?[%°]|'  # Percentages: 92%, 40.5%
-                        r'~\d+(?:\.\d+)?%?|'   # Approximate: ~40%, ~25
-                        r'\d+(?:\.\d+)?\s*(?:times|x|fold)|'  # Multipliers: 5x, 2 times
-                        r'\d+(?:\.\d+)?\s*(?:better|reduced|improved|increased|accuracy|participants|users|ms|seconds|minutes|hours|frame|fps|load\s+time|latency|boost|enhance|achieve)|'  # Performance metrics
-                        r'\d+\+|'  # Plus numbers: 1500+
-                        r'<\d+(?:\.\d+)?|'  # Less than: <300ms
-                        r'>\d+(?:\.\d+)?|'  # Greater than: >95%
-                        r'\d+(?:\.\d+)?\s*(?:million|thousand|k|m|b)',  # Large numbers
-                        desc, re.IGNORECASE
-                    )
-                ]
-                if numeric_lines:
-                    impacts[current_project] = numeric_lines
+            # Process previous project
+            if current_project and all_lines:
+                # FIXED: Reconstruct full bullet points that may be split across lines
+                reconstructed_lines = []
+                current_bullet = ""
+                
+                for proj_line in all_lines:
+                    proj_line = proj_line.strip()
+                    
+                    # Skip Technologies/Tech Stack lines and Link lines
+                    if (proj_line and 
+                        not proj_line.lower().startswith(('technologies:', 'tech stack:', 'stack:', 'link')) and
+                        proj_line.lower() != 'link'):
+                        
+                        # If line starts with bullet point, it's a new bullet
+                        if proj_line.startswith(('•', '-', '◦', '*')):
+                            # Save previous bullet if it exists and has numbers
+                            if current_bullet and re.search(r'\d+', current_bullet):
+                                reconstructed_lines.append(current_bullet.strip())
+                            # Start new bullet
+                            current_bullet = proj_line
+                        else:
+                            # This is a continuation of the current bullet
+                            if current_bullet:
+                                current_bullet += " " + proj_line
+                            else:
+                                # Standalone line (shouldn't happen in your format, but handle it)
+                                if re.search(r'\d+', proj_line):
+                                    reconstructed_lines.append(proj_line)
+                
+                # Don't forget the last bullet point
+                if current_bullet and re.search(r'\d+', current_bullet):
+                    reconstructed_lines.append(current_bullet.strip())
+                
+                if reconstructed_lines:
+                    impacts[current_project] = reconstructed_lines
             
-            # Start new project
-            current_project = clean_line
-            project_descriptions = []
+            # FIXED: Extract clean project name (same logic as working function)
+            if '–' in clean_line:
+                current_project = clean_line.split('–')[0].strip()
+            elif ' - ' in clean_line:
+                current_project = clean_line.split(' - ')[0].strip()
+            else:
+                current_project = clean_line
+            all_lines = []
         
-        # Handle bullet points and description lines
+        # Collect ALL lines for current project (except the project title itself)
         elif current_project and clean_line:
-            # Skip "Technologies:" lines for impact calculation
-            if not low.startswith(('technologies:', 'tech stack:', 'stack:')):
-                project_descriptions.append(clean_line)
+            all_lines.append(clean_line)
     
     # Handle last project
-    if current_project and project_descriptions:
-        numeric_lines = [
-            desc for desc in project_descriptions 
-            if re.search(
-                r'\d+(?:\.\d+)?[%°]|'
-                r'~\d+(?:\.\d+)?%?|'
-                r'\d+(?:\.\d+)?\s*(?:times|x|fold)|'
-                r'\d+(?:\.\d+)?\s*(?:better|reduced|improved|increased|accuracy|participants|users|ms|seconds|minutes|hours|frame|fps|load\s+time|latency|boost|enhance|achieve)|'
-                r'\d+\+|'
-                r'<\d+(?:\.\d+)?|'
-                r'>\d+(?:\.\d+)?|'
-                r'\d+(?:\.\d+)?\s*(?:million|thousand|k|m|b)',
-                desc, re.IGNORECASE
-            )
-        ]
-        if numeric_lines:
-            impacts[current_project] = numeric_lines
+    if current_project and all_lines:
+        # FIXED: Reconstruct full bullet points that may be split across lines
+        reconstructed_lines = []
+        current_bullet = ""
+        
+        for proj_line in all_lines:
+            proj_line = proj_line.strip()
+            
+            # Skip Technologies/Tech Stack lines and Link lines
+            if (proj_line and 
+                not proj_line.lower().startswith(('technologies:', 'tech stack:', 'stack:', 'link')) and
+                proj_line.lower() != 'link'):
+                
+                # If line starts with bullet point, it's a new bullet
+                if proj_line.startswith(('•', '-', '◦', '*')):
+                    # Save previous bullet if it exists and has numbers
+                    if current_bullet and re.search(r'\d+', current_bullet):
+                        reconstructed_lines.append(current_bullet.strip())
+                    # Start new bullet
+                    current_bullet = proj_line
+                else:
+                    # This is a continuation of the current bullet
+                    if current_bullet:
+                        current_bullet += " " + proj_line
+                    else:
+                        # Standalone line (shouldn't happen in your format, but handle it)
+                        if re.search(r'\d+', proj_line):
+                            reconstructed_lines.append(proj_line)
+        
+        # Don't forget the last bullet point
+        if current_bullet and re.search(r'\d+', current_bullet):
+            reconstructed_lines.append(current_bullet.strip())
+        
+        if reconstructed_lines:
+            impacts[current_project] = reconstructed_lines
     
-    # Only return projects that have quantifiable lines
     return {proj: metrics for proj, metrics in impacts.items() if metrics}
 
 
-# ---------- SKILL MATCHING (Enhanced) ----------
+# ---------- SKILL MATCHING (Enhanced with new skill matching logic) ----------
 def match_skills_against_job(text, job_title: str, job_skills: list, profile="general"):
-    """Enhanced job matching with skill count-based relevance scoring"""
+    """Enhanced job matching with improved skill matching and count-based relevance scoring"""
+    # Extract and normalize resume skills
     resume_skills = normalize_skills(extract_skills(text), profile=profile)
     job_skills_norm = normalize_skills(job_skills, profile=profile)
     
-    matched = [s for s in resume_skills if s in job_skills_norm]
-    missing = [s for s in job_skills_norm if s not in resume_skills]
+    # Use the enhanced skill matcher for better matching
+    skill_matcher = create_skill_matcher()
+    
+    # Convert job skills to dict format for the matcher
+    job_skills_dict = {skill: 5 for skill in job_skills_norm}  # Default weight of 5
+    
+    # Get matched and missing skills using the enhanced matcher
+    matched_skills_dict, missing_skills_dict = skill_matcher(resume_skills, job_skills_dict)
+    
+    # Convert back to lists for compatibility with existing code
+    matched = list(matched_skills_dict.keys())
+    missing = list(missing_skills_dict.keys())
     extra = [s for s in resume_skills if s not in job_skills_norm]
     
     def relevance_label(matched_count: int) -> str:
@@ -736,7 +857,12 @@ def match_skills_against_job(text, job_title: str, job_skills: list, profile="ge
     
     for project, skills in projects_with_skills.items():
         normalized_proj_skills = normalize_skills(skills, profile=profile)
-        overlap = set(normalized_proj_skills) & set(job_skills_norm)
+        
+        # Use enhanced skill matcher for project skills too
+        proj_skills_dict = {skill: 5 for skill in normalized_proj_skills}
+        proj_matched_dict, _ = skill_matcher(job_skills_norm, proj_skills_dict)
+        
+        overlap = set(proj_matched_dict.keys())
         matched_count = len(overlap)
         
         project_relevance[project] = {
@@ -817,9 +943,16 @@ def analyze_resume(file_path: str, job_title: str = None, job_skills: list = Non
         relevant_projects = []
         if job_skills and projects_with_skills:
             job_skills_norm = normalize_skills(job_skills, profile=profile)
+            skill_matcher = create_skill_matcher()
+            
             for project, project_skills in projects_with_skills.items():
                 normalized_proj_skills = normalize_skills(project_skills, profile=profile)
-                if set(normalized_proj_skills) & set(job_skills_norm):
+                # Use enhanced skill matcher
+                proj_skills_dict = {skill: 5 for skill in normalized_proj_skills}
+                job_skills_dict = {skill: 5 for skill in job_skills_norm}
+                matched_dict, _ = skill_matcher(normalized_proj_skills, job_skills_dict)
+                
+                if matched_dict:  # If any skills matched
                     relevant_projects.append(project)
         
         # Calculate analysis metrics
@@ -859,14 +992,10 @@ def analyze_resume(file_path: str, job_title: str = None, job_skills: list = Non
         if job_title and job_skills:
             job_match_result = match_skills_against_job(text, job_title, job_skills, profile=profile)
             
-            # Create matched_skills dictionary for frontend (skill -> score mapping)
-            matched_skills_dict = {}
-            for skill in job_match_result["matched_skills"]:
-                matched_skills_dict[skill] = 5  # Default score
-            
-            missing_skills_dict = {}
-            for skill in job_match_result["missing_skills"]:
-                missing_skills_dict[skill] = 5  # Default score
+            # Use enhanced skill matcher for better matching results
+            skill_matcher = create_skill_matcher()
+            job_skills_dict = {skill: 5 for skill in job_skills}
+            matched_skills_dict, missing_skills_dict = skill_matcher(normalize_skills(extract_skills(text), profile=profile), job_skills_dict)
             
             # Generate recommendations
             recommendations = []

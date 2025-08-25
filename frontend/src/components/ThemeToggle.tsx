@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
 
-    const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,7 +19,7 @@ const ThemeToggle = () => {
 
   return (
     <button
-onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className={cn(
         "fixed top-4 right-16 md:top-4 md:right-2 z-50 p-2 rounded-full transition-all duration-300 focus:outline-hidden", isScrolled ? "py-0" : "pt-1",)}
     >

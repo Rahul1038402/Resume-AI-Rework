@@ -38,12 +38,21 @@ const Index = () => {
 
             <Button
               size="lg"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-gray-800 dark:hover:bg-gray-900 px-8 py-6 text-lg sm:mr-6 mb-6"
+              asChild
+            >
+              <Link to="/builder"><ShinyText text="Build a Resume" disabled={false} speed={5} className='custom-class' /></Link>
+            </Button>
+
+            <Button
+              size="lg"
               className="bg-blue-600 hover:bg-blue-700 dark:bg-gray-800 dark:hover:bg-gray-900 px-8 py-6 text-lg"
               asChild
             >
               <Link to="/analyzer"><ShinyText text="Analyze Your Resume" disabled={false} speed={5} className='custom-class' /></Link>
             </Button>
           </div>
+          
         </div>
       </section>
 
