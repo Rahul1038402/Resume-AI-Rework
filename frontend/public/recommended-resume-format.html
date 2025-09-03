@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume AI - ATS Friendly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .download-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .download-btn:hover {
+            background: #2980b9;
+        }
+
+        @media print {
+            .download-btn {
+                display: none;
+            }
+
+            body {
+                margin: 0;
+                padding: 0.4in;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-800 leading-relaxed max-w-[8.5in] mx-auto p-[0.4in]">
+
+    <!-- Download button -->
+    <button class="download-btn" onclick="window.print()">📄 Download as PDF</button>
+
+    <!-- Header -->
+    <div class="text-center mb-6 border-b-2 border-black pb-4">
+        <div class="text-3xl font-bold text-gray-900 mb-1">Your Name</div>
+        <div class="text-base text-gray-600 mb-2">Your Target Job Title</div>
+        <div class="text-sm mt-2 text-gray-700 flex justify-center">
+            <a href="https://demo/" class="font-semibold text-black underline">demo@gmail.com</a>
+            <span class="mx-1 text-gray-500">•</span>
+            <p class=" text-black no-underline">+91 12345 67890</p>
+            <span class="mx-1 text-gray-500">•</span>
+            <p class=" text-black no-underline">Sector XX, City, State</p>
+        </div>
+        <div class="text-sm mt-2 text-gray-700">
+            <a href="https://demo/" class="font-semibold text-black underline">LinkedIn</a>
+            <span class="mx-1 text-gray-500">•</span>
+            <a href="https://demo/" class="font-semibold text-black underline">GitHub</a>
+            <span class="mx-1 text-gray-500">•</span>
+            <a href="https://demo/" class="font-semibold text-black underline">Portfolio</a>
+            <span class="mx-1 text-gray-500">•</span>
+            <a href="https://demo/" class="font-semibold text-black underline">LeetCode</a>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="mb-6">
+        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Summary</div>
+        <p class="text-sm text-gray-700">
+            Brief 2-3 line summary highlighting your key skills, experience level, and career focus.
+            Include specific technologies and mention what type of projects you've worked on.
+        </p>
+    </div>
+
+    <!-- Technical Skills -->
+    <div class="mb-6">
+        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Technical Skills</div>
+        <div class="text-sm flex mb-1">
+            <p class="font-bold pr-2">Frontend:</p> Skill 1, Skill 2, Skill 3
+        </div>
+        <div class="text-sm flex mb-1">
+            <p class="font-bold pr-2">Backend:</p> Skill 1, Skill 2, Skill 3
+        </div>
+        <div class="text-sm flex mb-1">
+            <p class="font-bold pr-2">Soft Skills:</p> Skill 1, Skill 2, Skill 3
+        </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="mb-6">
+        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Projects</div>
+
+        <div class="mb-5">
+            <div class="flex justify-between items-center font-bold text-sm text-gray-900">
+                <span>Project Name 1</span>
+                <a href="http://demo/" class="text-xs text-black underline">Link</a>
+            </div>
+            <div class="italic text-xs text-gray-600 mb-2">Tech Stack: React, Node.js, MongoDB, JWT Authentication</div>
+            <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
+                <li>Developed a full-stack web application with user authentication and real-time features</li>
+                <li>Optimized database queries reducing page load time by 25%</li>
+                <li>Deployed on AWS with CI/CD pipeline handling 100+ concurrent users</li>
+            </ul>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center font-bold text-sm text-gray-900">
+                <span>Project Name 2</span>
+                <a href="http://demo/" class="text-xs text-black underline">Link</a>
+            </div>
+            <div class="italic text-xs text-gray-600 mb-2">Tech Stack: Python, Flask, Machine Learning, pandas,
+                scikit-learn</div>
+            <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
+                <li>Built an AI-powered data analysis tool processing 10,000+ records</li>
+                <li>Achieved 85% accuracy in predictions using machine learning algorithms</li>
+                <li>Reduced manual data processing time by 60% through automation</li>
+            </ul>
+        </div>
+    </div>
+
+
+    <!-- Experience -->
+    <div class="mb-6">
+        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Experience</div>
+        <div>
+            <div class="font-bold text-sm text-gray-900">Intern / Part-time Role (if applicable)</div>
+            <div class="text-xs text-gray-600 mb-2">Company Name • Duration (e.g., Jun 2024 - Aug 2024)</div>
+            <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
+                <li>Collaborated with development team on feature implementation and bug fixes</li>
+                <li>Contributed to codebase with 15+ pull requests and code reviews</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Education -->
+    <div class="mb-6">
+        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Education</div>
+        <div>
+            <div class="font-bold text-sm text-gray-900">Degree Name - Field of Study</div>
+            <div class="text-xs text-gray-600">Institution Name • Expected Graduation: Graduation Date • GPA: GPA
+                (optional)</div>
+        </div>
+    </div>
+
+    <!-- Certifications -->
+    <div class="mb-6">
+        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Certifications /
+            Achievements</div>
+        <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
+            <li><strong>Google Cloud Platform Certified</strong> - Google Cloud (2025) - Credential ID: XXXXXX</li>
+            <li><strong>Hackathon Winner</strong> - XYZ Tech Fest (2024)</li>
+        </ul>
+    </div>
+
+</body>
+
+</html>
