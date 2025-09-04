@@ -142,16 +142,6 @@ const Index = () => {
               </GlowingCard>
             </GlowingCards>
           </div>
-
-          <div className="text-center mt-12">
-            <Button
-              className="bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90 px-8 text-white"
-              size="lg"
-              asChild
-            >
-              <Link to="/analyzer">Try Resume AI Now</Link>
-            </Button>
-          </div>
         </div>
       </section>
 

@@ -1,13 +1,14 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Advent+Pro:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cambria:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -22,7 +23,7 @@ html {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 0, 0%, 95%;
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
@@ -90,11 +91,11 @@ html {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', sans-serif;
   }
-  
+
   .gradient-bg {
     background: linear-gradient(135deg, #1A365D 0%, #38B2AC 100%);
   }
-  
+
   .dark .gradient-bg {
     background: linear-gradient(135deg, #0F172A 0%, #155E75 100%);
   }
@@ -125,8 +126,15 @@ html {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Dark mode support */
@@ -141,17 +149,20 @@ html {
   --resume-secondary: #1d4ed8;
   --resume-light: #f0f9ff;
 }
+
 .footer-content {
   position: relative;
   z-index: 1;
 }
+
 .footer {
   position: relative;
-  height: 200px; /* or your fixed height */
+  height: 200px;
   width: 100%;
   overflow: hidden;
-  background-color: #0a0a23; /* or any background */
+  background-color: #0a0a23;
 }
+
 .orb-container {
   position: relative;
   z-index: 2;
@@ -166,12 +177,10 @@ html {
 
 .shiny-text {
   color: #ffffffa4;
-  background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0) 40%,
-    rgba(255, 255, 255, 0.8) 50%,
-    rgba(255, 255, 255, 0) 60%
-  );
+  background: linear-gradient(120deg,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0.8) 50%,
+      rgba(255, 255, 255, 0) 60%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -183,6 +192,7 @@ html {
   0% {
     background-position: 100%;
   }
+
   100% {
     background-position: -100%;
   }
@@ -239,9 +249,11 @@ html {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -298,9 +310,6 @@ html {
   z-index: 0;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cambria:wght@400;600;700&display=swap');
-
 .font-arial {
   font-family: 'Arial', 'Helvetica', sans-serif;
 }
@@ -329,20 +338,20 @@ html {
   font-family: 'Times New Roman', 'Times', serif;
 }
 
-/* Ensure fonts are loaded for print */
+/* CSS for fonts to loaded in resume preview for print */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
-  
+
   /* Force font loading for print */
   .resume-page {
     font-synthesis: none;
   }
 }
 
-/* Custom styling for date input calendar icon */
+/* White bg and black date input calendar icon*/
 input[type="date"]::-webkit-calendar-picker-indicator {
   background-color: white;
   border-radius: 4px;
