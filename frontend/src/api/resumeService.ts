@@ -1,4 +1,3 @@
-// Enhanced API service aligned with improved backend
 const API_URL = "http://localhost:5000";
 
 // Import the proper types

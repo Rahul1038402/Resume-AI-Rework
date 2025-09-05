@@ -227,7 +227,7 @@ const Header = () => {
             ))}
 
             {/* Mobile Auth Section */}
-            <div className="mt-8 flex flex-col items-center gap-4 border border-1 border-gray-400 rounded-xl">
+            <div className="mt-8 flex flex-col items-center gap-4">
               {user ? (
                 <div className="flex flex-col items-center gap-4 p-4">
                   <div className="flex items-center gap-3">
