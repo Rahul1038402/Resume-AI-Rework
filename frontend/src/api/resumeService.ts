@@ -179,7 +179,7 @@ export const analyzeResume = async (
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes tk analyze
 
     const response = await fetch(`${API_URL}/analyze`, {
       method: "POST",

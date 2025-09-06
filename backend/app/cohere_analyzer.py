@@ -5,9 +5,13 @@ import cohere
 import fitz  # PyMuPDF
 from docx import Document
 from typing import Dict, List, Any, Optional
+import time
 
-# Initialize Cohere client
-co = cohere.Client(os.environ.get('COHERE_API_KEY'))
+# Initialize Cohere client with timeout configurations
+co = cohere.Client(
+    api_key=os.environ.get('COHERE_API_KEY'),
+    timeout=180  # 3 minutes timeout
+)
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     """Extract plain text from a PDF resume."""
@@ -21,9 +25,25 @@ def extract_text_from_docx(docx_path: str) -> str:
     """Extract plain text from a DOCX resume."""
     doc = Document(docx_path)
     return "\n".join([para.text for para in doc.paragraphs])
+
+def truncate_resume_text(text: str, max_length: int = 8000) -> str:
+    """Truncate resume text if it's too long to prevent timeouts."""
+    if len(text) <= max_length:
+        return text
     
+    # Try to truncate intelligently at sentence boundaries
+    truncated = text[:max_length]
+    last_period = truncated.rfind('.')
+    if last_period > max_length * 0.8:  # If we can find a period in the last 20%
+        return truncated[:last_period + 1]
+    
+    return truncated + "..."
+
 def create_analysis_prompt(resume_text: str, job_title: str = None, job_skills: List[str] = None, job_description: str = None) -> str:
     """Create a comprehensive prompt for Cohere to analyze the resume."""
+    
+    # Truncate resume text to prevent timeouts
+    resume_text = truncate_resume_text(resume_text, 6000)
     
     base_prompt = f"""
 You are an expert resume analyzer. Analyze the following resume text and extract information in the exact JSON format specified below.
@@ -76,8 +96,10 @@ JOB INFORMATION:
 - Job Title: {job_title}"""
         
         if job_description:
+            # Also truncate job description to prevent overly long prompts
+            job_desc_truncated = truncate_resume_text(job_description, 2000)
             job_info_section += f"""
-- Job Description: {job_description}
+- Job Description: {job_desc_truncated}
 
 Based on this job description, intelligently identify:
 1. Required technical skills (extract from the job description)
@@ -152,14 +174,6 @@ PROJECT RELEVANCE SCORING:
 - "Highly Relevant" (80-100): Project directly applicable to job requirements with 3+ matching core skills
 - "Somewhat Relevant" (40-79): Project has 1-2 skills that transfer to the job requirements  
 - "Not Relevant" (0-39): Project skills don't align with job requirements
-
-SKILL MATCHING RULES FOR PROJECTS:
-- Focus on advanced/specialized skills that demonstrate competency
-- For frontend roles: prioritize frameworks (React, Vue, Angular) over basics (HTML, CSS)
-- For backend roles: prioritize frameworks (Django, Express, Spring) over languages alone
-- For data roles: prioritize ML libraries (TensorFlow, PyTorch) over basic tools (Excel, SQL)
-- For DevOps roles: prioritize orchestration (Kubernetes, Docker) over basic scripting
-- Only count skills that show meaningful technical depth for the role level
 
 OVERALL FIT CALCULATION:
 - Strong Fit (80-100): High skill match + relevant projects + quantifiable impact
@@ -261,9 +275,48 @@ def enhance_analysis_with_post_processing(result: Dict[str, Any]) -> Dict[str, A
     
     return result
 
+def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
+    """Call Cohere API with retry logic and progressive timeout increases."""
+    
+    for attempt in range(max_retries):
+        try:
+            # Increase timeout for each retry attempt
+            timeout = 60 + (attempt * 30)  # 60s, 90s, 120s
+            
+            print(f"Attempt {attempt + 1}: Calling Cohere API with {timeout}s timeout...")
+            
+            response = co.generate(
+                model='command-r-plus',
+                prompt=prompt,
+                max_tokens=4000,
+                temperature=0.1,  # Low temperature for consistent, structured output
+                k=0,
+                stop_sequences=[],
+                return_likelihoods='NONE'
+            )
+            
+            return response.generations[0].text
+            
+        except Exception as e:
+            error_msg = str(e).lower()
+            
+            if "timeout" in error_msg or "read operation timed out" in error_msg:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    print(f"Timeout on attempt {attempt + 1}, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    raise Exception("API timeout after multiple retries")
+            else:
+                # For non-timeout errors, don't retry
+                raise e
+    
+    raise Exception("Max retries exceeded")
+
 def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills: List[str] = None, job_description: str = None, profile: str = "general") -> Dict[str, Any]:
     """
-    Main analysis function using Cohere API.
+    Main analysis function using Cohere API with improved timeout handling.
     Returns the same JSON structure as the original analyzer.
     """
     try:
@@ -278,29 +331,26 @@ def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills
         if not text.strip():
             raise ValueError("No text could be extracted from the file.")
         
+        print(f"Extracted resume text length: {len(text)} characters")
+        
         # Create the analysis prompt
         prompt = create_analysis_prompt(text, job_title, job_skills, job_description)
+        print(f"Generated prompt length: {len(prompt)} characters")
         
-        # Call Cohere API
-        response = co.generate(
-            model='command-r-plus',
-            prompt=prompt,
-            max_tokens=4000,
-            temperature=0.1,  # Low temperature for consistent, structured output
-            k=0,
-            stop_sequences=[],
-            return_likelihoods='NONE'
-        )
+        # Call Cohere API with retry logic
+        response_text = call_cohere_with_retry(prompt)
         
         # Parse the response
-        result = parse_cohere_response(response.generations[0].text)
+        result = parse_cohere_response(response_text)
         
         # Post-process to ensure completeness
         result = enhance_analysis_with_post_processing(result)
         
+        print("Analysis completed successfully")
         return result
         
     except Exception as e:
+        print(f"Analysis error: {str(e)}")
         # Return error in the same format expected by frontend
         return {
             "skills": [],
