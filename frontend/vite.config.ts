@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -11,8 +10,16 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    // Only use componentTagger in development and if it exists
+    mode === 'development' && (() => {
+      try {
+        const { componentTagger } = require("lovable-tagger");
+        return componentTagger();
+      } catch (e) {
+        console.warn('lovable-tagger not available, skipping...');
+        return null;
+      }
+    })(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -20,28 +27,14 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    // Simplify build options for production
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // Game component gets its own chunk
-          if (id.includes('GalaxyAttack')) {
-            return 'game-chunk';
-          }
-
-          // React vendor chunk
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react-vendor';
-          }
-
-          // UI icons chunk
-          if (id.includes('lucide-react')) {
-            return 'ui-vendor';
-          }
-
-          // Other node_modules
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
+        manualChunks: {
+          // Keep React separate
+          'react-vendor': ['react', 'react-dom'],
+          // Keep other large libraries separate if you use them
+          'ui-vendor': ['lucide-react'],
         }
       }
     }
