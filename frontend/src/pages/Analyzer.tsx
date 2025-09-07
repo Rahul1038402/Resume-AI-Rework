@@ -145,7 +145,7 @@ const Analyzer = () => {
                       className="text-gray-700 dark:text-green-300 border-green-300 hover:bg-green-100 dark:hover:bg-green-800 transition-colors duration-300"
                     >
                       <Settings className="h-4 w-4 mr-2" />
-                      Build Resume of Recommended Format
+                      Create Recommended Resume
                     </Button>
                   </Link>
                 </div>
@@ -176,8 +176,10 @@ const Analyzer = () => {
                 )}
               </Button>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 z-0">
-                We'll analyze your resume against {targetJob || "general"} requirements
+                We'll analyze your resume against {targetJob || "general"} requirements. <br/>
+                <span className="font-semibold">This usually takes around 2–3 minutes.</span>
               </p>
+
             </Card>
 
             <ResumeResults
@@ -208,7 +210,8 @@ const Analyzer = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">Resume Analysis Starting</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Would you like to play Galaxy Attack while your resume is being analyzed?
+              <span className="font-semibold">Analysis takes about 2–3 minutes... 🚀</span> <br />
+              Why not relax and enjoy our <span className="font-semibold">Galaxy Attack Game</span> while you wait?
             </p>
             <div className="flex gap-3">
               <Button

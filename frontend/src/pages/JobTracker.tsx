@@ -265,8 +265,10 @@ const JobTracker = () => {
                     </GradientText>
                 </div>
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl text-resume-primary dark:text-resume-secondary">My Applications</h2>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3 sm:gap-0">
+                        <h2 className="text-2xl text-resume-primary dark:text-resume-secondary">
+                            My Applications
+                        </h2>
                         <button
                             onClick={() => setShowForm(true)}
                             className="flex items-center gap-2 px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/90 hover:dark:bg-resume-secondary/80 text-white rounded-lg transition-colors duration-200"
@@ -275,7 +277,6 @@ const JobTracker = () => {
                             Add Application
                         </button>
                     </div>
-
                     {showForm && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                             <div className="bg-card rounded-lg p-6 w-1/2 min-w-[350px] max-h-[90vh] overflow-y-auto border border-border">

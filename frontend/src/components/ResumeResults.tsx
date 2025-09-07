@@ -2,11 +2,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
-  Info, 
-  Lightbulb, 
-  AlertTriangle, 
-  CheckCircle2, 
+import {
+  Info,
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle2,
   TrendingUp,
   Code,
   BarChart3,
@@ -17,7 +17,7 @@ import {
   X
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type {ResumeResultsProps} from '../types/analysis'
+import type { ResumeResultsProps } from '../types/analysis'
 
 const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
   /** -------------------- LOADING STATE -------------------- */
@@ -26,17 +26,20 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
       <div className="space-y-6">
         <Card className="animate-pulse">
           <CardHeader>
-            <Skeleton className="h-8 w-1/2" />
-            <Skeleton className="h-6 w-full mt-2" />
-            <Skeleton className="h-4 w-1/3 mt-4" />
+            <Skeleton className="h-8 w-1/2 bg-gray-300 dark:bg-gray-700" />
+            <Skeleton className="h-6 w-full mt-2 bg-gray-300 dark:bg-gray-700" />
+            <Skeleton className="h-4 w-1/3 mt-4 bg-gray-300 dark:bg-gray-700" />
           </CardHeader>
           <CardContent className="space-y-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-3">
-                <Skeleton className="h-6 w-1/3" />
+                <Skeleton className="h-6 w-1/3 bg-gray-300 dark:bg-gray-700" />
                 <div className="flex gap-2">
                   {[...Array(5)].map((_, j) => (
-                    <Skeleton key={j} className="h-6 w-20" />
+                    <Skeleton
+                      key={j}
+                      className="h-6 w-20 bg-gray-300 dark:bg-gray-700"
+                    />
                   ))}
                 </div>
               </div>
@@ -61,28 +64,28 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
   /** -------------------- EMPTY STATE -------------------- */
   if (!result) {
     return (
-    <Alert>
-      <Info className="h-4 w-4 mt-2" />
-      <AlertTitle className="flex items-center gap-2">
-        <span>Ready to analyze</span>
-        <span className="flex items-center gap-1 text-green-600 text-sm font-medium border border-green-600 rounded-xl p-1">
-          <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-          AI Active
-        </span>
-      </AlertTitle>
-      <AlertDescription>
-        Upload a resume and select a target job to begin comprehensive analysis.
-      </AlertDescription>
-    </Alert>
+      <Alert>
+        <Info className="h-4 w-4 mt-2" />
+        <AlertTitle className="flex items-center gap-2">
+          <span>Ready to analyze</span>
+          <span className="flex items-center gap-1 text-green-600 text-sm font-medium border border-green-600 rounded-xl p-1">
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+            AI Active
+          </span>
+        </AlertTitle>
+        <AlertDescription>
+          Upload a resume and select a target job to begin comprehensive analysis.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   /** -------------------- DESTRUCTURE DATA -------------------- */
-  const { 
-    score = 0, 
-    matched_skills = {}, 
-    missing_skills = {}, 
-    recommendations = [], 
+  const {
+    score = 0,
+    matched_skills = {},
+    missing_skills = {},
+    recommendations = [],
     target_job = "General",
     projects = [],
     analysis = {
@@ -163,12 +166,12 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
           <div className="flex justify-between items-center mt-2">
             <div className="text-sm text-muted-foreground">
               Target: <span className="font-medium text-foreground">
-  {target_job
-    .toLowerCase()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')}
-</span>
+                {target_job
+                  .toLowerCase()
+                  .split(' ')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ')}
+              </span>
             </div>
             <div className="flex gap-4 text-xs text-muted-foreground">
               <span>Skills: {analysis.total_skills_found}</span>
@@ -289,7 +292,7 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
                 <div className="flex justify-between items-start">
                   <h4 className="font-semibold text-lg">{projectName}</h4>
                   <div className="flex items-center gap-2">
-                    <Badge 
+                    <Badge
                       variant={getRelevanceBadgeVariant(projectData.relevance_label)}
                       className="flex items-center gap-1"
                     >
@@ -308,7 +311,7 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
                       {((result as any).projects_with_skills[projectName] || []).map((skill: string, skillIndex: number) => {
                         const isMatched = (projectData.matched_skills || []).includes(skill);
                         return (
-                          <Badge 
+                          <Badge
                             key={`${skill}-${skillIndex}`}
                             variant={isMatched ? "default" : "outline"}
                             className={`text-xs ${isMatched ? 'bg-green-100 text-green-800' : ''}`}
@@ -329,7 +332,7 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
                     {(() => {
                       const metricsData = (result as any).quantifiable_impacts || {};
                       const projectMetrics = metricsData[projectName] || [];
-                      
+
                       return projectMetrics.length > 0 ? (
                         <div className="space-y-1">
                           {projectMetrics.slice(0, 3).map((metric: string, metricIndex: number) => (
@@ -420,7 +423,7 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
                 {(() => {
                   const totalProjects = Object.keys(project_relevance).length;
                   const metricsData = (result as any).quantifiable_impacts || {};
-                  const projectsWithMetrics = Object.keys(metricsData).filter(project => 
+                  const projectsWithMetrics = Object.keys(metricsData).filter(project =>
                     (metricsData[project] || []).length > 0
                   ).length;
                   return totalProjects > 0 ? Math.round((projectsWithMetrics / totalProjects) * 100) : 0;
