@@ -8,7 +8,7 @@ from typing import Dict, List, Any, Optional
 import time
 
 # Initialize Cohere client with timeout configurations
-co = cohere.Client(
+co = cohere.ClientV2(
     api_key=os.environ.get('COHERE_API_KEY'),
     timeout=180  # 3 minutes timeout
 )
@@ -276,26 +276,27 @@ def enhance_analysis_with_post_processing(result: Dict[str, Any]) -> Dict[str, A
     return result
 
 def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
-    """Call Cohere API with retry logic and progressive timeout increases."""
+    """Call Cohere Chat API with retry logic and progressive timeout increases."""
     
     for attempt in range(max_retries):
         try:
-            # Increase timeout for each retry attempt
-            timeout = 60 + (attempt * 30)  # 60s, 90s, 120s
+            print(f"Attempt {attempt + 1}: Calling Cohere Chat API...")
             
-            print(f"Attempt {attempt + 1}: Calling Cohere API with {timeout}s timeout...")
-            
-            response = co.generate(
-                model='command-r-plus',
-                prompt=prompt,
+            # Use the new Chat API format
+            response = co.chat(
+                model='command-r-plus-08-2024',  # Updated model name
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
                 max_tokens=4000,
                 temperature=0.1,  # Low temperature for consistent, structured output
-                k=0,
                 stop_sequences=[],
-                return_likelihoods='NONE'
             )
             
-            return response.generations[0].text
+            return response.message.content[0].text
             
         except Exception as e:
             error_msg = str(e).lower()
@@ -316,7 +317,7 @@ def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
 
 def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills: List[str] = None, job_description: str = None, profile: str = "general") -> Dict[str, Any]:
     """
-    Main analysis function using Cohere API with improved timeout handling.
+    Main analysis function using Cohere Chat API with improved timeout handling.
     Returns the same JSON structure as the original analyzer.
     """
     try:
@@ -372,13 +373,18 @@ def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills
 def test_cohere_connection() -> bool:
     """Test if Cohere API is properly configured."""
     try:
-        response = co.generate(
-            model='command-r-plus',
-            prompt="Say 'Hello, Cohere is working!'",
+        response = co.chat(
+            model='command-r-plus-08-2024',
+            messages=[
+                {
+                    "role": "user", 
+                    "content": "Say 'Hello, Cohere is working!'"
+                }
+            ],
             max_tokens=10,
             temperature=0.1
         )
-        return "Hello" in response.generations[0].text
+        return "Hello" in response.message.content[0].text
     except Exception as e:
         print(f"Cohere connection test failed: {e}")
         return False
