@@ -96,8 +96,7 @@ RESUME-AI/
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd RESUME-AI
+git clone https://github.com/Rahul1038402/Resume-AI-Rework.git
 ```
 
 2. **Navigate to backend directory**
