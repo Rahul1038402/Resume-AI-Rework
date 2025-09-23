@@ -177,7 +177,7 @@ const Analyzer = () => {
               </Button>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 z-0">
                 We'll analyze your resume against {targetJob || "general"} requirements. <br/>
-                <span className="font-semibold">This usually takes around 2–3 minutes.</span>
+                <span className="font-semibold">This usually takes around 30 sec to 1 min.</span>
               </p>
 
             </Card>
