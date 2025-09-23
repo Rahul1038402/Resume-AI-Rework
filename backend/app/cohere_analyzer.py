@@ -151,18 +151,25 @@ Based on this job description, extract required skills and analyze match."""
 
 Analyze what skills are typically required for {job_title} role based on industry standards."""
         
-        # Add ALL missing fields from old logic
+        # Add ALL missing fields from old logic with proper skill matching logic
         job_section += f"""
+
+CRITICAL SKILL MATCHING INSTRUCTIONS:
+1. First, determine required skills for {job_title}
+2. Then, compare with the ALREADY EXTRACTED skills from the resume
+3. matched_skills = skills that appear in BOTH required_skills AND the extracted skills array
+4. missing_skills = required skills that are NOT found in the extracted skills array
+5. extra_skills = extracted skills that are useful but not core requirements
 
 Add these additional fields to JSON:
 {{
     "job_match": {{
         "job_title": "{job_title}",
         "required_skills": ["skill1", "skill2"],
-        "matched_skills": ["matched1", "matched2"],
-        "missing_skills": ["missing1", "missing2"],
-        "extra_skills": ["bonus1", "bonus2"],
-        "skill_match_score": 85,
+        "matched_skills": ["only skills from extracted skills that match requirements"],
+        "missing_skills": ["required skills NOT in extracted skills"],
+        "extra_skills": ["extracted skills that are bonus for this role"],
+        "skill_match_score": (matched_skills.length / required_skills.length) * 100,
         "avg_project_relevance": 75,
         "overall_relevance_score": 80,
         "overall_fit": "Strong Fit",
@@ -178,14 +185,20 @@ Add these additional fields to JSON:
     }},
     "target_job": "{job_title}",
     "score": 85,
-    "matched_skills": {{"React": 0.9, "Python": 0.8}},
-    "missing_skills": {{"Docker": 0.7, "AWS": 0.8}},
+    "matched_skills": {{"skill_name": relevance_weight (0.1-1.0)}},
+    "missing_skills": {{"skill_name": importance_weight (0.1-1.0)}},
     "recommendations": [
-        "Learn missing skills: [specific skills]",
+        "Learn missing skills: [only truly missing skills]",
         "Strengthen projects with [specific improvements]",
         "Focus on [domain-specific advice]"
     ]
 }}
+
+SKILL MATCHING EXAMPLES:
+- If extracted skills = ["React", "Python", "Docker", "AWS"] 
+- And required skills for full stack = ["React", "Node.js", "Python", "Docker", "AWS", "PostgreSQL"]
+- Then matched_skills = ["React", "Python", "Docker", "AWS"]
+- And missing_skills = ["Node.js", "PostgreSQL"]
 
 Scoring Guidelines:
 - Strong Fit (80-100): High skill match + relevant projects + quantifiable impact
