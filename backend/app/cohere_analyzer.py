@@ -10,11 +10,42 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize Cohere client with timeout configurations
-co = cohere.Client(
-    api_key=os.environ.get('COHERE_API_KEY'),
-    timeout=180  # 3 minutes timeout
-)
+# Timeout configurations based on analysis complexity
+TIMEOUT_CONFIG = {
+    "basic_extraction": 25,     # Skills, projects only
+    "full_analysis": 35,        # With metrics, scoring
+    "job_matching": 45,         # With job comparison
+    "complex_analysis": 60,     # Everything + recommendations
+}
+
+# Model configurations for speed vs quality tradeoff
+MODELS_BY_SPEED = [
+    "command-r-08-2024",        # Faster, good quality
+    "command-r-plus-08-2024",   # Slower, best quality
+]
+
+def get_optimal_timeout(has_job_info: bool, include_recommendations: bool, prompt_length: int) -> int:
+    """Calculate optimal timeout based on analysis complexity and prompt length."""
+    
+    # Base timeout selection
+    if include_recommendations and has_job_info:
+        base_timeout = TIMEOUT_CONFIG["complex_analysis"]
+    elif has_job_info:
+        base_timeout = TIMEOUT_CONFIG["job_matching"]
+    elif include_recommendations:
+        base_timeout = TIMEOUT_CONFIG["full_analysis"]
+    else:
+        base_timeout = TIMEOUT_CONFIG["basic_extraction"]
+    
+    # Adjust for prompt length
+    if prompt_length > 8000:
+        base_timeout += 15
+    elif prompt_length > 5000:
+        base_timeout += 10
+    elif prompt_length > 3000:
+        base_timeout += 5
+    
+    return min(base_timeout, 90)  # Cap at 90 seconds
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     """Extract plain text from a PDF resume."""
@@ -29,208 +60,220 @@ def extract_text_from_docx(docx_path: str) -> str:
     doc = Document(docx_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-def truncate_resume_text(text: str, max_length: int = 8000) -> str:
-    """Truncate resume text if it's too long to prevent timeouts."""
+def preprocess_for_speed(resume_text: str, max_length: int = 3000) -> str:
+    """Clean and optimize resume text for faster processing."""
+    
+    # Remove excessive whitespace
+    text = re.sub(r'\s+', ' ', resume_text).strip()
+    
+    # Remove less important sections for speed
+    sections_to_minimize = [
+        r'(?i)references?:.*?(?=\n[A-Z][a-z]+:|$)',
+        r'(?i)hobbies?.*?(?=\n[A-Z][a-z]+:|$)',
+        r'(?i)interests?.*?(?=\n[A-Z][a-z]+:|$)',
+        r'(?i)personal\s+information.*?(?=\n[A-Z][a-z]+:|$)',
+    ]
+    
+    for pattern in sections_to_minimize:
+        text = re.sub(pattern, '', text, flags=re.DOTALL)
+    
+    # Intelligent truncation
     if len(text) <= max_length:
         return text
     
-    # Try to truncate intelligently at sentence boundaries
+    # Try to keep important sections
+    important_keywords = ['project', 'experience', 'skill', 'education', 'work', 'technical']
+    
+    # Find the last occurrence of important keywords within the limit
     truncated = text[:max_length]
-    last_period = truncated.rfind('.')
-    if last_period > max_length * 0.8:  # If we can find a period in the last 20%
-        return truncated[:last_period + 1]
+    best_cut = max_length
     
-    return truncated + "..."
+    for keyword in important_keywords:
+        last_occurrence = truncated.lower().rfind(keyword)
+        if last_occurrence > max_length * 0.7:  # Within last 30%
+            sentence_end = truncated.find('.', last_occurrence)
+            if sentence_end != -1 and sentence_end < best_cut:
+                best_cut = sentence_end + 1
+    
+    return text[:best_cut].strip() + "..."
 
-def create_analysis_prompt(resume_text: str, job_title: str = None, job_skills: List[str] = None, job_description: str = None) -> str:
-    """Create a comprehensive prompt for Cohere to analyze the resume."""
+def create_optimized_prompt(resume_text: str, job_title: str = None, job_description: str = None) -> str:
+    """Create a streamlined, fast-processing prompt."""
     
-    # Truncate resume text to prevent timeouts
-    resume_text = truncate_resume_text(resume_text, 6000)
+    # Optimize resume text length
+    resume_text = preprocess_for_speed(resume_text, 2500)
     
-    base_prompt = f"""
-You are an expert resume analyzer. Analyze the following resume text and extract information in the exact JSON format specified below.
+    # Base streamlined prompt
+    base_prompt = f"""Analyze this resume and return ONLY valid JSON:
 
-RESUME TEXT:
+RESUME:
 {resume_text}
 
-Extract the following information and return ONLY a valid JSON object with this exact structure:
-
+JSON Structure:
 {{
-    "skills": [list of technical skills found in resume - programming languages, frameworks, tools, etc.],
-    "projects": [list of project names/titles only],
-    "projects_with_skills": {{
-        "Project Name": [list of technologies/skills used in this project]
-    }},
-    "quantifiable_impacts": {{
-        "Project Name": [list of bullet points with numbers/metrics/achievements]
-    }},
-    "relevant_projects": [list of project names relevant to the job if job info provided],
+    "skills": ["skill1", "skill2"],
+    "projects": ["Project 1", "Project 2"],
+    "projects_with_skills": {{"Project Name": ["tech1", "tech2"]}},
+    "quantifiable_impacts": {{"Project Name": ["metric with numbers"]}},
     "analysis": {{
-        "total_skills_found": number,
-        "total_projects": number,
-        "relevant_projects": number,
-        "skills_with_metrics": number,
-        "achieved_score": number out of 100,
-        "max_possible_score": 100
+        "total_skills_found": 0,
+        "total_projects": 0,
+        "achieved_score": 0
     }}
 }}
 
-IMPORTANT INSTRUCTIONS:
-1. For "skills": Extract ALL technical skills explicitly written in the resume (programming languages, frameworks, libraries, tools, platforms, databases, etc.). Do NOT infer or add related technologies if not explicitly mentioned.
-2. For "projects": Extract only the main project names/titles (clean titles without descriptions).
-3. For "projects_with_skills": Map each project to its technologies ONLY if explicitly listed under "Tech Stack", "Technologies", or similar. If not listed, return an empty array. Do not guess technologies from context.
-4. For "quantifiable_impacts": Extract bullet points ONLY if they contain explicit numbers, percentages, metrics, or measurable achievements. If none exist, return an empty list for that project. Do not invent or estimate values.
-5. For "relevant_projects": If job info is provided, include projects that explicitly use relevant technologies.
-6. Scoring Rules:
-   - Project relevance = 40%
-   - Quantifiable metrics = 30%
-   - Total skills = 30%
-   - Normalize each sub-score to its weight. If a category has no data, assign 0.
-7. Ensure the final JSON is strictly valid and parsable.
+Rules:
+- Extract only explicitly mentioned technical skills
+- Include projects with clear technology stacks
+- Only include metrics with actual numbers/percentages
+- Score based on: skills (30%) + projects (40%) + metrics (30%)
+- Return valid JSON only, no explanations"""
 
-Return ONLY the JSON object, no additional text or explanation.
-"""
-
+    # Add job matching if provided
     if job_title:
-        job_info_section = f"""
+        job_section = f"""
 
-JOB INFORMATION:
-- Job Title: {job_title}"""
+JOB: {job_title}"""
         
         if job_description:
-            # Also truncate job description to prevent overly long prompts
-            job_desc_truncated = truncate_resume_text(job_description, 2000)
-            job_info_section += f"""
-- Job Description: {job_desc_truncated}
+            # Truncate job description aggressively
+            job_desc = preprocess_for_speed(job_description, 1000)
+            job_section += f"""
+DESCRIPTION: {job_desc}"""
+        
+        job_section += f"""
 
-Based on this job description, intelligently identify:
-1. Required technical skills (extract from the job description)
-2. Preferred skills mentioned
-3. Level of experience expected
-4. Domain-specific requirements
-
-Then match these requirements against the resume skills."""
-        else:
-            job_info_section += f"""
-
-Since no job description is provided, analyze what skills would typically be required for a {job_title} role. Consider:
-1. Core technical skills for {job_title} (entry to mid-level)
-2. Popular frameworks/libraries in this domain
-3. Essential tools and platforms
-4. Industry-standard practices
-5. Both technical and soft skills relevant to this role
-
-Then match these typical requirements against the resume skills."""
-            
-        base_prompt += job_info_section + f"""
-
-Additionally add these fields to the JSON:
+Add to JSON:
 {{
     "job_match": {{
-        "job_title": "{job_title}",
-        "required_skills": [skills typically required or mentioned in job description for this role],
-        "matched_skills": [skills from resume that match job requirements],
-        "missing_skills": [required skills not found in resume],
-        "extra_skills": [skills in resume that are bonus/additional for this role],
-        "skill_match_score": percentage of required skills found in resume,
-        "avg_project_relevance": average relevance score of projects (0-100),
-        "overall_relevance_score": overall fit score considering skills, projects, and experience level (0-100),
-        "overall_fit": "Strong Fit" | "Moderate Fit" | "Weak Fit",
-        "project_relevance": {{
-            "Project Name": {{
-                "skills": [project skills],
-                "matched_skills": [skills from this project matching job requirements],
-                "matched_skills_count": number,
-                "relevance_score": number (0-100),
-                "relevance_label": "Highly Relevant" | "Somewhat Relevant" | "Not Relevant"
-            }}
-        }}
+        "required_skills": ["skill1", "skill2"],
+        "matched_skills": ["matched1", "matched2"],
+        "missing_skills": ["missing1", "missing2"],
+        "skill_match_score": 85,
+        "overall_fit": "Strong Fit"
     }},
-    "target_job": "{job_title}",
-    "score": final compatibility score (0-100),
-    "matched_skills": {{"skill_name": relevance_weight}},
-    "missing_skills": {{"skill_name": importance_weight}},
-    "recommendations": [
-        "Based on the job requirements, consider learning [specific missing skills] to strengthen your profile.",
-        "Your projects demonstrate [specific strengths], but could benefit from [specific improvements based on role requirements].",
-        "To increase competitiveness for {job_title} roles, focus on [domain-specific advice based on current trends]."
-    ]
-}}
-
-SKILL MATCHING INTELLIGENCE:
-- For job descriptions: Extract exact skills mentioned and infer closely related ones
-- For job titles only: Use your knowledge of current industry requirements for that role
-- Consider skill synonyms (e.g., "JavaScript" matches "JS", "React.js" matches "React")
-- Weight skills by importance: core skills > nice-to-have > bonus skills
-- Account for skill levels: if resume shows advanced skills, don't penalize for missing basics
-
-RECOMMENDATION INTELLIGENCE:
-- Prioritize 2-3 most impactful missing skills rather than listing everything
-- Group related technologies (e.g., "Python data science stack: Pandas, NumPy, Scikit-learn")
-- Consider career progression (don't recommend basics if person has advanced skills)
-- Make suggestions specific to job description requirements if provided
-- Focus on high-impact improvements that match industry trends
-- Avoid recommending skills already demonstrated in resume
-
-PROJECT RELEVANCE SCORING:
-- "Highly Relevant" (80-100): Project directly applicable to job requirements with 3+ matching core skills
-- "Somewhat Relevant" (40-79): Project has 1-2 skills that transfer to the job requirements  
-- "Not Relevant" (0-39): Project skills don't align with job requirements
-
-OVERALL FIT CALCULATION:
-- Strong Fit (80-100): High skill match + relevant projects + quantifiable impact
-- Moderate Fit (50-79): Good skill match OR good projects OR good metrics
-- Weak Fit (0-49): Low skill match AND limited relevant experience
-"""
-
+    "recommendations": ["Learn X", "Improve Y"]
+}}"""
+        
+        base_prompt += job_section
+    
     return base_prompt
 
+def call_cohere_with_progressive_timeout(prompt: str, analysis_type: str = "basic") -> str:
+    """Call Cohere with progressive timeout strategy."""
+    
+    # Calculate optimal timeout
+    has_job_info = "JOB:" in prompt
+    include_recommendations = "recommendations" in prompt
+    optimal_timeout = get_optimal_timeout(has_job_info, include_recommendations, len(prompt))
+    
+    # Progressive timeouts: try fast first, then optimal, then extended
+    timeouts = [
+        min(20, optimal_timeout - 10),  # Quick attempt
+        optimal_timeout,                 # Optimal timeout
+        min(optimal_timeout + 20, 90)   # Extended timeout
+    ]
+    
+    last_error = None
+    
+    for i, timeout_val in enumerate(timeouts):
+        try:
+            print(f"Attempt {i+1}: {timeout_val}s timeout...")
+            start_time = time.time()
+            
+            # Try faster model first, then fallback to better model
+            model = MODELS_BY_SPEED[0] if i == 0 else MODELS_BY_SPEED[1]
+            
+            # Create client with specific timeout
+            client = cohere.Client(
+                api_key=os.environ.get('COHERE_API_KEY'),
+                timeout=timeout_val
+            )
+            
+            response = client.chat(
+                model=model,
+                message=prompt,
+                temperature=0.0,
+                max_tokens=1500,  # Limit response length for speed
+            )
+            
+            elapsed = time.time() - start_time
+            print(f"✓ Success in {elapsed:.1f}s using {model}")
+            
+            return response.text
+            
+        except Exception as e:
+            last_error = e
+            error_msg = str(e).lower()
+            
+            print(f"✗ Attempt {i+1} failed: {error_msg[:100]}...")
+            
+            # Only retry on timeout/rate limit errors
+            if any(keyword in error_msg for keyword in ["timeout", "rate limit", "connection"]):
+                if i < len(timeouts) - 1:
+                    print(f"Retrying with longer timeout...")
+                    time.sleep(2)
+                    continue
+            
+            # For other errors, don't retry
+            break
+    
+    # If all attempts failed
+    raise Exception(f"API call failed after {len(timeouts)} attempts. Last error: {str(last_error)}")
+
 def parse_cohere_response(response_text: str) -> Dict[str, Any]:
-    """Parse and validate Cohere's JSON response."""
+    """Parse and validate Cohere's JSON response with improved error handling."""
     try:
-        # Clean the response - remove any non-JSON content
         response_text = response_text.strip()
         
-        # Find JSON object bounds
-        start_idx = response_text.find('{')
-        end_idx = response_text.rfind('}') + 1
+        # Find JSON bounds
+        json_start = response_text.find('{')
+        json_end = response_text.rfind('}') + 1
         
-        if start_idx == -1 or end_idx == 0:
-            raise ValueError("No JSON object found in response")
+        if json_start == -1 or json_end == 0:
+            raise ValueError("No JSON object found")
         
-        json_str = response_text[start_idx:end_idx]
-        
-        # Parse JSON
+        json_str = response_text[json_start:json_end]
         result = json.loads(json_str)
         
-        # Validate required fields
-        required_fields = ["skills", "projects", "projects_with_skills", "quantifiable_impacts", "analysis"]
-        for field in required_fields:
-            if field not in result:
-                result[field] = [] if field != "analysis" else {}
-        
-        # Ensure analysis has required subfields
-        if "analysis" in result:
-            analysis_defaults = {
+        # Validate and ensure required fields
+        required_fields = {
+            "skills": [],
+            "projects": [],
+            "projects_with_skills": {},
+            "quantifiable_impacts": {},
+            "analysis": {
                 "total_skills_found": 0,
                 "total_projects": 0,
-                "relevant_projects": 0,
-                "skills_with_metrics": 0,
-                "achieved_score": 0,
-                "max_possible_score": 100
+                "achieved_score": 0
             }
-            for key, default_value in analysis_defaults.items():
-                if key not in result["analysis"]:
-                    result["analysis"][key] = default_value
+        }
+        
+        for field, default_value in required_fields.items():
+            if field not in result:
+                result[field] = default_value
+        
+        # Update analysis counts
+        if "analysis" in result:
+            analysis = result["analysis"]
+            analysis["total_skills_found"] = len(result.get("skills", []))
+            analysis["total_projects"] = len(result.get("projects", []))
+            
+            # Ensure score is calculated
+            if analysis.get("achieved_score", 0) == 0:
+                skills_score = min(len(result.get("skills", [])) * 1.5, 30)
+                projects_score = min(len(result.get("projects", [])) * 8, 40)
+                metrics_score = min(len(result.get("quantifiable_impacts", {})) * 6, 30)
+                analysis["achieved_score"] = round(skills_score + projects_score + metrics_score, 1)
         
         return result
         
     except json.JSONDecodeError as e:
-        # Fallback: create basic structure from text analysis
+        print(f"JSON parsing failed: {str(e)}")
         return create_fallback_analysis(response_text)
     except Exception as e:
-        raise Exception(f"Error parsing Cohere response: {str(e)}")
+        print(f"Response parsing error: {str(e)}")
+        return create_fallback_analysis(response_text)
 
 def create_fallback_analysis(text: str) -> Dict[str, Any]:
     """Create a basic analysis structure if JSON parsing fails."""
@@ -239,237 +282,105 @@ def create_fallback_analysis(text: str) -> Dict[str, Any]:
         "projects": [],
         "projects_with_skills": {},
         "quantifiable_impacts": {},
-        "relevant_projects": [],
         "analysis": {
             "total_skills_found": 0,
             "total_projects": 0,
-            "relevant_projects": 0,
-            "skills_with_metrics": 0,
-            "achieved_score": 0,
-            "max_possible_score": 100
+            "achieved_score": 0
         },
-        "error": "Failed to parse AI response",
-        "raw_response": text[:500]  # First 500 chars for debugging
+        "error": "Failed to parse AI response - please try again",
+        "raw_response": text[:300] if text else "No response received"
     }
 
-def enhance_analysis_with_post_processing(result: Dict[str, Any]) -> Dict[str, Any]:
-    """Post-process the analysis to ensure data consistency and completeness."""
-    
-    # Ensure relevant_projects is populated
-    if "relevant_projects" not in result or not result["relevant_projects"]:
-        result["relevant_projects"] = list(result.get("projects", []))
-    
-    # Update analysis counts to match actual data
-    if "analysis" in result:
-        analysis = result["analysis"]
-        analysis["total_skills_found"] = len(result.get("skills", []))
-        analysis["total_projects"] = len(result.get("projects", []))
-        analysis["relevant_projects"] = len(result.get("relevant_projects", []))
-        analysis["skills_with_metrics"] = len(result.get("quantifiable_impacts", {}))
-        
-        # Recalculate score if needed
-        if analysis.get("achieved_score", 0) == 0:
-            total_projects = analysis["total_projects"]
-            if total_projects > 0:
-                project_score = (analysis["relevant_projects"] / total_projects) * 40
-                metrics_score = min((analysis["skills_with_metrics"] / total_projects) * 30, 30)
-                skills_score = min((analysis["total_skills_found"] / 20) * 30, 30)
-                analysis["achieved_score"] = round(project_score + metrics_score + skills_score, 2)
-    
-    return result
-
-def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
-    """Call Cohere Chat API with retry logic and exponential backoff."""
-    import time
-
-    for attempt in range(max_retries):
-        try:
-            print(f"Attempt {attempt + 1}: Calling Cohere Chat API...")
-
-            # Cohere SDK v5+ syntax
-            response = co.chat(
-                model="command-r-plus-08-2024",
-                message=prompt,  # v5+ uses 'message' (singular)
-                temperature=0.0,  # deterministic output for JSON parsing
-            )
-            
-            # Return the text content (v5+ uses response.text)
-            return response.text
-
-        except Exception as e:
-            error_msg = str(e).lower()
-
-            # Retry only on timeout errors
-            if "timeout" in error_msg or "read operation timed out" in error_msg:
-                if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt  # exponential backoff: 1s, 2s, 4s
-                    print(f"Timeout on attempt {attempt + 1}, retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                    continue
-                else:
-                    raise Exception("API timeout after multiple retries") from e
-            else:
-                # For non-timeout errors, raise immediately
-                raise e
-
-    raise Exception("Max retries exceeded")
-
-
-# Alternative version if you want to check your Cohere SDK version first
-def get_cohere_version_and_fix():
+def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills: List[str] = None, 
+                             job_description: str = None, profile: str = "general") -> Dict[str, Any]:
     """
-    Check Cohere version and provide the appropriate fix.
-    Run this to see what version you have.
-    """
-    import cohere
-    print(f"Cohere SDK version: {cohere.__version__}")
-    
-    # Version-specific guidance
-    try:
-        version_parts = cohere.__version__.split('.')
-        major_version = int(version_parts[0])
-        
-        if major_version >= 5:
-            print("Using Cohere SDK v5+: Use 'message' parameter")
-            return "v5+"
-        else:
-            print("Using Cohere SDK v4 or older: Use 'messages' parameter")
-            return "v4-"
-    except:
-        print("Could not determine version, try both formats")
-        return "unknown"
-
-
-# Updated function that handles both SDK versions
-def call_cohere_with_version_detection(prompt: str, max_retries: int = 3) -> str:
-    """Call Cohere API with automatic version detection."""
-    import time
-    
-    for attempt in range(max_retries):
-        try:
-            print(f"Attempt {attempt + 1}: Calling Cohere API...")
-
-            # Try v5+ syntax first (message parameter)
-            try:
-                response = co.chat(
-                    model="command-r-plus-08-2024",
-                    message=prompt,
-                    temperature=0.0,
-                )
-                return response.text
-            
-            except TypeError as te:
-                if "unexpected keyword argument 'message'" in str(te):
-                    # Try v4 syntax (messages parameter)
-                    print("Trying v4 syntax with messages parameter...")
-                    response = co.chat(
-                        model="command-r-plus-08-2024",
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=0.0,
-                    )
-                    return response.message.content
-                else:
-                    raise te
-            
-            except AttributeError as ae:
-                if "chat" in str(ae):
-                    # Fall back to generate API
-                    print("Chat API not available, using generate API...")
-                    response = co.generate(
-                        model="command-r-plus",
-                        prompt=prompt,
-                        max_tokens=4000,
-                        temperature=0.0,
-                    )
-                    return response.generations[0].text
-                else:
-                    raise ae
-
-        except Exception as e:
-            error_msg = str(e).lower()
-            
-            if "timeout" in error_msg or "read operation timed out" in error_msg:
-                if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt
-                    print(f"Timeout on attempt {attempt + 1}, retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                    continue
-                else:
-                    raise Exception("API timeout after multiple retries") from e
-            else:
-                raise e
-
-    raise Exception("Max retries exceeded")
-
-
-def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills: List[str] = None, job_description: str = None, profile: str = "general") -> Dict[str, Any]:
-    """
-    Main analysis function using Cohere API with improved timeout handling.
-    Returns the same JSON structure as the original analyzer.
+    Optimized resume analysis with smart timeout handling.
     """
     try:
-        # Extract text from file
+        print("🚀 Starting optimized resume analysis...")
+        
+        # Extract text
         if file_path.endswith(".pdf"):
             text = extract_text_from_pdf(file_path)
         elif file_path.endswith(".docx"):
             text = extract_text_from_docx(file_path)
         else:
-            raise ValueError("Unsupported file format. Only .pdf and .docx are supported.")
+            raise ValueError("Unsupported file format. Only .pdf and .docx supported.")
         
         if not text.strip():
             raise ValueError("No text could be extracted from the file.")
         
-        print(f"Extracted resume text length: {len(text)} characters")
+        print(f"📄 Extracted {len(text)} characters from resume")
         
-        # Create the analysis prompt
-        prompt = create_analysis_prompt(text, job_title, job_skills, job_description)
-        print(f"Generated prompt length: {len(prompt)} characters")
+        # Create optimized prompt
+        prompt = create_optimized_prompt(text, job_title, job_description)
+        print(f"📝 Generated {len(prompt)} character prompt")
         
-        # Call Cohere API with retry logic
-        response_text = call_cohere_with_retry(prompt)
+        # Determine analysis type for timeout calculation
+        analysis_type = "complex" if job_title and job_description else "basic"
         
-        # Parse the response
+        # Call API with progressive timeout strategy
+        response_text = call_cohere_with_progressive_timeout(prompt, analysis_type)
+        
+        # Parse response
         result = parse_cohere_response(response_text)
         
-        # Post-process to ensure completeness
-        result = enhance_analysis_with_post_processing(result)
+        # Add metadata
+        result["processing_info"] = {
+            "resume_length": len(text),
+            "prompt_length": len(prompt),
+            "analysis_type": analysis_type,
+            "timestamp": time.time()
+        }
         
-        print("Analysis completed successfully")
+        print("✅ Analysis completed successfully")
         return result
         
     except Exception as e:
-        print(f"Analysis error: {str(e)}")
-        # Return error in the same format expected by frontend
+        error_msg = str(e)
+        print(f"❌ Analysis failed: {error_msg}")
+        
         return {
             "skills": [],
             "projects": [],
             "projects_with_skills": {},
             "quantifiable_impacts": {},
-            "relevant_projects": [],
             "analysis": {
                 "total_skills_found": 0,
                 "total_projects": 0,
-                "relevant_projects": 0,
-                "skills_with_metrics": 0,
-                "achieved_score": 0,
-                "max_possible_score": 100
+                "achieved_score": 0
             },
-            "error": f"Analysis failed: {str(e)}"
+            "error": f"Analysis failed: {error_msg}",
+            "processing_info": {
+                "error_time": time.time(),
+                "analysis_type": "failed"
+            }
         }
 
 def test_cohere_connection() -> bool:
-    """Test if Cohere API is properly configured."""
+    """Test Cohere API connection with optimized settings."""
     try:
-        response = co.generate(
-            model='command-r-plus',
-            prompt="Say 'Hello, Cohere is working!'",
-            max_tokens=10,
-            temperature=0.1
+        print("🔧 Testing Cohere connection...")
+        
+        client = cohere.Client(
+            api_key=os.environ.get('COHERE_API_KEY'),
+            timeout=10  # Short timeout for test
         )
-        return "Hello" in response.generations[0].text
+        
+        response = client.chat(
+            model="command-r-08-2024",  # faster model
+            message="Reply with just: 'Connection OK'",
+            temperature=0.0,
+            max_tokens=10
+        )
+        
+        success = "connection ok" in response.text.lower()
+        print(f"✅ Connection test: {'PASSED' if success else 'FAILED'}")
+        return success
+        
     except Exception as e:
-        print(f"Cohere connection test failed: {e}")
+        print(f"❌ Connection test failed: {str(e)}")
         return False
 
-# Backwards compatibility - alias the main function
+# Backwards compatibility
 analyze_resume = analyze_resume_with_cohere
