@@ -279,43 +279,41 @@ def enhance_analysis_with_post_processing(result: Dict[str, Any]) -> Dict[str, A
     return result
 
 def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
-    """Call Cohere API with retry logic and progressive timeout increases."""
-    
+    """Call Cohere Chat API with retry logic and exponential backoff."""
+    import time
+
     for attempt in range(max_retries):
         try:
-            # Increase timeout for each retry attempt
-            timeout = 60 + (attempt * 30)  # 60s, 90s, 120s
-            
-            print(f"Attempt {attempt + 1}: Calling Cohere API with {timeout}s timeout...")
-            
-            response = co.generate(
-                model='command-a-03-2025',
-                prompt=prompt,
-                max_tokens=4000,
-                temperature=0.1,  # Low temperature for consistent, structured output
-                k=0,
-                stop_sequences=[],
-                return_likelihoods='NONE'
+            print(f"Attempt {attempt + 1}: Calling Cohere Chat API...")
+
+            # Chat API call
+            response = co.chat(
+                model='command-a-03-2025',  # latest recommended model
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,  # deterministic output for JSON parsing
             )
-            
-            return response.generations[0].text
-            
+
+            # Return the content from AI
+            return response.message.content
+
         except Exception as e:
             error_msg = str(e).lower()
-            
+
+            # Retry only on timeout errors
             if "timeout" in error_msg or "read operation timed out" in error_msg:
                 if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    wait_time = 2 ** attempt  # exponential backoff: 1s, 2s, 4s
                     print(f"Timeout on attempt {attempt + 1}, retrying in {wait_time}s...")
                     time.sleep(wait_time)
                     continue
                 else:
-                    raise Exception("API timeout after multiple retries")
+                    raise Exception("API timeout after multiple retries") from e
             else:
-                # For non-timeout errors, don't retry
+                # For non-timeout errors, raise immediately
                 raise e
-    
+
     raise Exception("Max retries exceeded")
+
 
 def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills: List[str] = None, job_description: str = None, profile: str = "general") -> Dict[str, Any]:
     """
