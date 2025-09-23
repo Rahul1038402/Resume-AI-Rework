@@ -286,15 +286,15 @@ def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
         try:
             print(f"Attempt {attempt + 1}: Calling Cohere Chat API...")
 
-            # Chat API call
+            # Cohere SDK v5+ syntax
             response = co.chat(
-                model='command-a-03-2025',  # latest recommended model
-                messages=[{"role": "user", "content": prompt}],
+                model="command-r-plus-08-2024",
+                message=prompt,  # v5+ uses 'message' (singular)
                 temperature=0.0,  # deterministic output for JSON parsing
             )
-
-            # Return the content from AI
-            return response.message.content
+            
+            # Return the text content (v5+ uses response.text)
+            return response.text
 
         except Exception as e:
             error_msg = str(e).lower()
@@ -310,6 +310,93 @@ def call_cohere_with_retry(prompt: str, max_retries: int = 3) -> str:
                     raise Exception("API timeout after multiple retries") from e
             else:
                 # For non-timeout errors, raise immediately
+                raise e
+
+    raise Exception("Max retries exceeded")
+
+
+# Alternative version if you want to check your Cohere SDK version first
+def get_cohere_version_and_fix():
+    """
+    Check Cohere version and provide the appropriate fix.
+    Run this to see what version you have.
+    """
+    import cohere
+    print(f"Cohere SDK version: {cohere.__version__}")
+    
+    # Version-specific guidance
+    try:
+        version_parts = cohere.__version__.split('.')
+        major_version = int(version_parts[0])
+        
+        if major_version >= 5:
+            print("Using Cohere SDK v5+: Use 'message' parameter")
+            return "v5+"
+        else:
+            print("Using Cohere SDK v4 or older: Use 'messages' parameter")
+            return "v4-"
+    except:
+        print("Could not determine version, try both formats")
+        return "unknown"
+
+
+# Updated function that handles both SDK versions
+def call_cohere_with_version_detection(prompt: str, max_retries: int = 3) -> str:
+    """Call Cohere API with automatic version detection."""
+    import time
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempt {attempt + 1}: Calling Cohere API...")
+
+            # Try v5+ syntax first (message parameter)
+            try:
+                response = co.chat(
+                    model="command-r-plus-08-2024",
+                    message=prompt,
+                    temperature=0.0,
+                )
+                return response.text
+            
+            except TypeError as te:
+                if "unexpected keyword argument 'message'" in str(te):
+                    # Try v4 syntax (messages parameter)
+                    print("Trying v4 syntax with messages parameter...")
+                    response = co.chat(
+                        model="command-r-plus-08-2024",
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=0.0,
+                    )
+                    return response.message.content
+                else:
+                    raise te
+            
+            except AttributeError as ae:
+                if "chat" in str(ae):
+                    # Fall back to generate API
+                    print("Chat API not available, using generate API...")
+                    response = co.generate(
+                        model="command-r-plus",
+                        prompt=prompt,
+                        max_tokens=4000,
+                        temperature=0.0,
+                    )
+                    return response.generations[0].text
+                else:
+                    raise ae
+
+        except Exception as e:
+            error_msg = str(e).lower()
+            
+            if "timeout" in error_msg or "read operation timed out" in error_msg:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt
+                    print(f"Timeout on attempt {attempt + 1}, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    raise Exception("API timeout after multiple retries") from e
+            else:
                 raise e
 
     raise Exception("Max retries exceeded")
