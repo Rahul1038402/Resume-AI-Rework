@@ -127,7 +127,7 @@ pip install -r requirements.txt
 
 5. **Start the backend server**
 ```bash
-flask run --port 5000 --debug
+python main.py
 ```
 
 ### Frontend Setup
