@@ -5,7 +5,10 @@ import tempfile
 import os
 from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import RequestEntityTooLarge
-from app.groq_analyzer import analyze_resume_with_groq as analyze_resume_with_gemini, extract_text_from_pdf, extract_text_from_docx, test_groq_connection as test_gemini_connection
+from app.groq_analyzer import analyze_resume_with_groq, extract_text_from_pdf, extract_text_from_docx, test_groq_connection
+from app.ats_scorer import calculate_ats_score
+from app.resume_comparator import compare_resumes
+from app.skills_analyzer import analyze_skills_gap
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -18,23 +21,23 @@ def home():
     """Health check endpoint"""
     return jsonify({
         "status": "running",
-        "message": "Resume AI backend is running with Gemini!"
+        "message": "Resume AI backend is running with Groq!"
     })
 
 @routes.route("/health", methods=["GET"])
 def health_check():
-    """Comprehensive health check including Gemini connectivity"""
+    """Comprehensive health check including Groq connectivity"""
     try:
-        gemini_status = test_gemini_connection()
+        groq_status = test_groq_connection()
         return jsonify({
-            "status": "healthy" if gemini_status else "degraded",
-            "gemini_connected": gemini_status,
-            "message": "All systems operational" if gemini_status else "Gemini API connection issue"
+            "status": "healthy" if groq_status else "degraded",
+            "groq_connected": groq_status,
+            "message": "All systems operational" if groq_status else "Groq API connection issue"
         })
     except Exception as e:
         return jsonify({
             "status": "unhealthy",
-            "gemini_connected": False,
+            "groq_connected": False,
             "error": str(e)
         }), 500
 
@@ -67,8 +70,8 @@ def analyze_resume_api():
         if job_description:
             logger.info(f"Job description provided: {job_description[:100]}...")
 
-        # Run Gemini-powered analysis with job description
-        result = analyze_resume_with_gemini(
+        # Run Groq-powered analysis with job description
+        result = analyze_resume_with_groq(
             file_path=tmp_path, 
             job_title=job_title, 
             job_skills=None,  # Always None - let Gemini decide
@@ -144,8 +147,8 @@ def analyze_multiple_jobs():
                 # Get job description if provided
                 job_description = request.form.get(f"{job}_description", "").strip()
                 
-                # Analyze with Gemini - let it determine required skills
-                result = analyze_resume_with_gemini(
+                # Analyze with Groq - let it determine required skills
+                result = analyze_resume_with_groq(
                     file_path=tmp_path, 
                     job_title=job, 
                     job_skills=None,  # Let Gemini decide
@@ -208,8 +211,8 @@ def get_project_highlights():
             file.save(tmp.name)
             tmp_path = tmp.name
 
-        # Run analysis with Gemini - let it determine skills based on job
-        result = analyze_resume_with_gemini(
+        # Run analysis with Groq - let it determine skills based on job
+        result = analyze_resume_with_groq(
             file_path=tmp_path, 
             job_title=job_title if job_title else None, 
             job_skills=None,  # Let Gemini decide
@@ -258,8 +261,8 @@ def extract_skills_only():
             file.save(tmp.name)
             tmp_path = tmp.name
 
-        # Run basic analysis with Gemini (no job matching)
-        result = analyze_resume_with_gemini(file_path=tmp_path)
+        # Run basic analysis with Groq (no job matching)
+        result = analyze_resume_with_groq(file_path=tmp_path)
 
         # Clean up
         os.remove(tmp_path)
@@ -277,15 +280,125 @@ def extract_skills_only():
         logger.error(f"Error in /skills-only: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+@routes.route("/ats-score", methods=["POST"])
+def get_ats_score():
+    """Calculate ATS compatibility score for resume."""
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file uploaded"}), 400
+
+        file = request.files["file"]
+        job_description = request.form.get("job_description", "").strip()
+
+        if not file.filename.lower().endswith(('.pdf', '.docx')):
+            return jsonify({"error": "Only PDF and DOCX files are supported"}), 400
+
+        suffix = os.path.splitext(file.filename)[-1].lower()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            file.save(tmp.name)
+            tmp_path = tmp.name
+
+        if tmp_path.endswith(".pdf"):
+            text = extract_text_from_pdf(tmp_path)
+        else:
+            text = extract_text_from_docx(tmp_path)
+
+        os.remove(tmp_path)
+
+        ats_result = calculate_ats_score(text, job_description if job_description else None)
+        return jsonify(ats_result)
+
+    except Exception as e:
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        logger.error(f"Error in /ats-score: {str(e)}")
+        return jsonify({"error": f"ATS scoring failed: {str(e)}"}), 500
+
+@routes.route("/compare-resumes", methods=["POST"])
+def compare_two_resumes():
+    """Compare two resumes and highlight differences."""
+    try:
+        if "file1" not in request.files or "file2" not in request.files:
+            return jsonify({"error": "Two files required for comparison"}), 400
+
+        file1 = request.files["file1"]
+        file2 = request.files["file2"]
+
+        for file in [file1, file2]:
+            if not file.filename.lower().endswith(('.pdf', '.docx')):
+                return jsonify({"error": "Only PDF and DOCX files are supported"}), 400
+
+        # Process first file
+        suffix1 = os.path.splitext(file1.filename)[-1].lower()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix1) as tmp1:
+            file1.save(tmp1.name)
+            tmp1_path = tmp1.name
+
+        # Process second file
+        suffix2 = os.path.splitext(file2.filename)[-1].lower()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix2) as tmp2:
+            file2.save(tmp2.name)
+            tmp2_path = tmp2.name
+
+        # Extract text from both files
+        text1 = extract_text_from_pdf(tmp1_path) if tmp1_path.endswith(".pdf") else extract_text_from_docx(tmp1_path)
+        text2 = extract_text_from_pdf(tmp2_path) if tmp2_path.endswith(".pdf") else extract_text_from_docx(tmp2_path)
+
+        # Clean up temp files
+        os.remove(tmp1_path)
+        os.remove(tmp2_path)
+
+        comparison_result = compare_resumes(text1, text2)
+        return jsonify(comparison_result)
+
+    except Exception as e:
+        # Clean up temp files if they exist
+        for tmp_path in ['tmp1_path', 'tmp2_path']:
+            if tmp_path in locals() and os.path.exists(locals()[tmp_path]):
+                os.remove(locals()[tmp_path])
+        
+        logger.error(f"Error in /compare-resumes: {str(e)}")
+        return jsonify({"error": f"Comparison failed: {str(e)}"}), 500
+
+@routes.route("/skills-gap", methods=["POST"])
+def analyze_skills_gap_api():
+    """Analyze skills gap for a target role."""
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file uploaded"}), 400
+
+        file = request.files["file"]
+        target_role = request.form.get("target_role", "software engineer").strip()
+
+        if not file.filename.lower().endswith(('.pdf', '.docx')):
+            return jsonify({"error": "Only PDF and DOCX files are supported"}), 400
+
+        suffix = os.path.splitext(file.filename)[-1].lower()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            file.save(tmp.name)
+            tmp_path = tmp.name
+
+        text = extract_text_from_pdf(tmp_path) if tmp_path.endswith(".pdf") else extract_text_from_docx(tmp_path)
+        os.remove(tmp_path)
+
+        gap_analysis = analyze_skills_gap(text, target_role)
+        return jsonify(gap_analysis)
+
+    except Exception as e:
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        logger.error(f"Error in /skills-gap: {str(e)}")
+        return jsonify({"error": f"Skills gap analysis failed: {str(e)}"}), 500
+
 @routes.route("/debug/test-analyzer", methods=["GET"])
 def test_analyzer():
-    """Debug endpoint to ensure Gemini analyzer works."""
+    """Debug endpoint to ensure Groq analyzer works."""
     try:
-        gemini_status = test_gemini_connection()
+        groq_status = test_groq_connection()
         return jsonify({
-            "status": "success" if gemini_status else "error",
-            "message": "Gemini analyzer is working" if gemini_status else "Gemini connection failed",
-            "gemini_connected": gemini_status
+            "status": "success" if groq_status else "error",
+            "message": "Groq analyzer is working" if groq_status else "Groq connection failed",
+            "groq_connected": groq_status
         })
     except Exception as e:
         return jsonify({
