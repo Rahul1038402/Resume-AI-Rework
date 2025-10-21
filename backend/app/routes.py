@@ -5,7 +5,7 @@ import tempfile
 import os
 from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import RequestEntityTooLarge
-from app.cohere_analyzer import analyze_resume_with_cohere, extract_text_from_pdf, extract_text_from_docx, test_cohere_connection
+from app.groq_analyzer import analyze_resume_with_groq as analyze_resume_with_gemini, extract_text_from_pdf, extract_text_from_docx, test_groq_connection as test_gemini_connection
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -18,29 +18,29 @@ def home():
     """Health check endpoint"""
     return jsonify({
         "status": "running",
-        "message": "Resume AI backend is running with Cohere!"
+        "message": "Resume AI backend is running with Gemini!"
     })
 
 @routes.route("/health", methods=["GET"])
 def health_check():
-    """Comprehensive health check including Cohere connectivity"""
+    """Comprehensive health check including Gemini connectivity"""
     try:
-        cohere_status = test_cohere_connection()
+        gemini_status = test_gemini_connection()
         return jsonify({
-            "status": "healthy" if cohere_status else "degraded",
-            "cohere_connected": cohere_status,
-            "message": "All systems operational" if cohere_status else "Cohere API connection issue"
+            "status": "healthy" if gemini_status else "degraded",
+            "gemini_connected": gemini_status,
+            "message": "All systems operational" if gemini_status else "Gemini API connection issue"
         })
     except Exception as e:
         return jsonify({
             "status": "unhealthy",
-            "cohere_connected": False,
+            "gemini_connected": False,
             "error": str(e)
         }), 500
 
 @routes.route("/analyze", methods=["POST", "OPTIONS"])
 def analyze_resume_api():
-    """Analyze resume against a target job using Cohere AI."""
+    """Analyze resume against a target job using Gemini AI."""
     if request.method == "OPTIONS":
         return "", 200
 
@@ -67,11 +67,11 @@ def analyze_resume_api():
         if job_description:
             logger.info(f"Job description provided: {job_description[:100]}...")
 
-        # Run Cohere-powered analysis with job description
-        result = analyze_resume_with_cohere(
+        # Run Gemini-powered analysis with job description
+        result = analyze_resume_with_gemini(
             file_path=tmp_path, 
             job_title=job_title, 
-            job_skills=None,  # Always None - let Cohere decide
+            job_skills=None,  # Always None - let Gemini decide
             job_description=job_description if job_description else None
         )
 
@@ -110,7 +110,7 @@ def analyze_resume_api():
 
 @routes.route("/analyze-multiple-jobs", methods=["POST"])
 def analyze_multiple_jobs():
-    """Analyze resume against multiple job roles using Cohere AI."""
+    """Analyze resume against multiple job roles using Gemini AI."""
     try:
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
@@ -144,11 +144,11 @@ def analyze_multiple_jobs():
                 # Get job description if provided
                 job_description = request.form.get(f"{job}_description", "").strip()
                 
-                # Analyze with Cohere - let it determine required skills
-                result = analyze_resume_with_cohere(
+                # Analyze with Gemini - let it determine required skills
+                result = analyze_resume_with_gemini(
                     file_path=tmp_path, 
                     job_title=job, 
-                    job_skills=None,  # Let Cohere decide
+                    job_skills=None,  # Let Gemini decide
                     job_description=job_description if job_description else None
                 )
                 results[job] = result
@@ -189,7 +189,7 @@ def analyze_multiple_jobs():
 
 @routes.route("/project-highlights", methods=["POST"])
 def get_project_highlights():
-    """Return only project-related insights from the resume using Cohere AI."""
+    """Return only project-related insights from the resume using Gemini AI."""
     try:
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
@@ -208,11 +208,11 @@ def get_project_highlights():
             file.save(tmp.name)
             tmp_path = tmp.name
 
-        # Run analysis with Cohere - let it determine skills based on job
-        result = analyze_resume_with_cohere(
+        # Run analysis with Gemini - let it determine skills based on job
+        result = analyze_resume_with_gemini(
             file_path=tmp_path, 
             job_title=job_title if job_title else None, 
-            job_skills=None,  # Let Cohere decide
+            job_skills=None,  # Let Gemini decide
             job_description=job_description if job_description else None
         )
 
@@ -241,7 +241,7 @@ def get_project_highlights():
 
 @routes.route("/skills-only", methods=["POST"])
 def extract_skills_only():
-    """Extract only skills from resume using Cohere AI."""
+    """Extract only skills from resume using Gemini AI."""
     try:
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
@@ -258,8 +258,8 @@ def extract_skills_only():
             file.save(tmp.name)
             tmp_path = tmp.name
 
-        # Run basic analysis with Cohere (no job matching)
-        result = analyze_resume_with_cohere(file_path=tmp_path)
+        # Run basic analysis with Gemini (no job matching)
+        result = analyze_resume_with_gemini(file_path=tmp_path)
 
         # Clean up
         os.remove(tmp_path)
@@ -279,13 +279,13 @@ def extract_skills_only():
 
 @routes.route("/debug/test-analyzer", methods=["GET"])
 def test_analyzer():
-    """Debug endpoint to ensure Cohere analyzer works."""
+    """Debug endpoint to ensure Gemini analyzer works."""
     try:
-        cohere_status = test_cohere_connection()
+        gemini_status = test_gemini_connection()
         return jsonify({
-            "status": "success" if cohere_status else "error",
-            "message": "Cohere analyzer is working" if cohere_status else "Cohere connection failed",
-            "cohere_connected": cohere_status
+            "status": "success" if gemini_status else "error",
+            "message": "Gemini analyzer is working" if gemini_status else "Gemini connection failed",
+            "gemini_connected": gemini_status
         })
     except Exception as e:
         return jsonify({

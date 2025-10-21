@@ -1266,7 +1266,7 @@ export default function ResumeBuilder() {
                         </div>
 
                         <div className='flex flex-col space-y-2 items-center justify-center'>
-                            <div className='flex justify-center items-center space-x-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4'>
+                            <div className='sm:hidden flex justify-center items-center space-x-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4'>
                                 <NotebookPen className='size-8 sm:size-4 text-green-600' />
                                 <p>Use this feature in tablet, laptop or desktop for a better resume preview.</p>
                             </div>

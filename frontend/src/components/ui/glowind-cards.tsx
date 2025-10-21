@@ -8,6 +8,7 @@ export interface GlowingCardProps {
   className?: string;
   glowColor?: string;
   hoverEffect?: boolean;
+  style?: React.CSSProperties;
 }
 
 export interface GlowingCardsProps {
@@ -163,7 +164,7 @@ export const GlowingCards: React.FC<GlowingCardsProps> = ({
             ref={overlayRef}
             className={cn(
               "absolute inset-0 pointer-events-none select-none",
-              "opacity-0 transition-all duration-[var(--animation-duration)] ease-out"
+              "opacity-0 transition-all duration-[time:var(--animation-duration)] ease-out"
             )}
             style={{
               // String concatenation for WebkitMask and mask

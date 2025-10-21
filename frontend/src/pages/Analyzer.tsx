@@ -163,7 +163,7 @@ const Analyzer = () => {
               <Button
                 className="w-full sm:w-auto bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90 px-8"
                 size="lg"
-                onClick={handleAnalyze}
+                onClick={() => startAnalysisWithGame(false)}
                 disabled={!file || isAnalyzing}
               >
                 {isAnalyzing ? (
@@ -177,7 +177,6 @@ const Analyzer = () => {
               </Button>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 z-0">
                 We'll analyze your resume against {targetJob || "general"} requirements. <br/>
-                <span className="font-semibold">This usually takes around 30 sec to 1 min.</span>
               </p>
 
             </Card>
@@ -204,7 +203,7 @@ const Analyzer = () => {
         </div>
       </div>
 
-      {/* Game Prompt Modal */}
+      {/* Game Prompt Modal
       {showGamePrompt && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
@@ -230,9 +229,9 @@ const Analyzer = () => {
             </div>
           </div>
         </div>
-      )}
+      )}*/}
 
-      {/* Galaxy Attack Game */}
+      {/* Galaxy Attack Game
       {showGame && (
         <Suspense fallback={<GameLoadingSkeleton />}>
           <GalaxyAttackGame
@@ -242,7 +241,7 @@ const Analyzer = () => {
             analysisError={error}
           />
         </Suspense>
-      )}
+      )}*/}
     </Layout>
   );
 };

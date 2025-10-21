@@ -1,33 +1,35 @@
 import os
 import re
 import json
-import cohere
 import fitz  # PyMuPDF
 from docx import Document
 from typing import Dict, List, Any, Optional
 import time
 from dotenv import load_dotenv
+from groq import Groq
 
 load_dotenv()
 
-# Timeout configurations based on analysis complexity
+# Global rate limiter
+_last_api_call_time = 0
+_min_seconds_between_calls = 1
+
+# Timeout configurations
 TIMEOUT_CONFIG = {
-    "basic_extraction": 25,     # Skills, projects only
-    "full_analysis": 35,        # With metrics, scoring
-    "job_matching": 45,         # With job comparison
-    "complex_analysis": 60,     # Everything + recommendations
+    "basic_extraction": 25,
+    "full_analysis": 35,
+    "job_matching": 45,
+    "complex_analysis": 60,
 }
 
-# Model configurations for speed vs quality tradeoff
-MODELS_BY_SPEED = [
-    "command-r-08-2024",        # Faster, good quality
-    "command-r-plus-08-2024",   # Slower, best quality
+# Groq models (very fast!)
+GROQ_MODELS = [
+    "llama-3.3-70b-versatile",  # Best balance of speed and quality
+    "mixtral-8x7b-32768",        # Good for long context
 ]
 
 def get_optimal_timeout(has_job_info: bool, include_recommendations: bool, prompt_length: int) -> int:
-    """Calculate optimal timeout based on analysis complexity and prompt length."""
-    
-    # Base timeout selection
+    """Calculate optimal timeout based on analysis complexity."""
     if include_recommendations and has_job_info:
         base_timeout = TIMEOUT_CONFIG["complex_analysis"]
     elif has_job_info:
@@ -37,7 +39,6 @@ def get_optimal_timeout(has_job_info: bool, include_recommendations: bool, promp
     else:
         base_timeout = TIMEOUT_CONFIG["basic_extraction"]
     
-    # Adjust for prompt length
     if prompt_length > 8000:
         base_timeout += 15
     elif prompt_length > 5000:
@@ -45,7 +46,7 @@ def get_optimal_timeout(has_job_info: bool, include_recommendations: bool, promp
     elif prompt_length > 3000:
         base_timeout += 5
     
-    return min(base_timeout, 90)  # Cap at 90 seconds
+    return min(base_timeout, 90)
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     """Extract plain text from a PDF resume."""
@@ -62,11 +63,8 @@ def extract_text_from_docx(docx_path: str) -> str:
 
 def preprocess_for_speed(resume_text: str, max_length: int = 3000) -> str:
     """Clean and optimize resume text for faster processing."""
-    
-    # Remove excessive whitespace
     text = re.sub(r'\s+', ' ', resume_text).strip()
     
-    # Remove less important sections for speed
     sections_to_minimize = [
         r'(?i)references?:.*?(?=\n[A-Z][a-z]+:|$)',
         r'(?i)hobbies?.*?(?=\n[A-Z][a-z]+:|$)',
@@ -77,20 +75,16 @@ def preprocess_for_speed(resume_text: str, max_length: int = 3000) -> str:
     for pattern in sections_to_minimize:
         text = re.sub(pattern, '', text, flags=re.DOTALL)
     
-    # Intelligent truncation
     if len(text) <= max_length:
         return text
     
-    # Try to keep important sections
     important_keywords = ['project', 'experience', 'skill', 'education', 'work', 'technical']
-    
-    # Find the last occurrence of important keywords within the limit
     truncated = text[:max_length]
     best_cut = max_length
     
     for keyword in important_keywords:
         last_occurrence = truncated.lower().rfind(keyword)
-        if last_occurrence > max_length * 0.7:  # Within last 30%
+        if last_occurrence > max_length * 0.7:
             sentence_end = truncated.find('.', last_occurrence)
             if sentence_end != -1 and sentence_end < best_cut:
                 best_cut = sentence_end + 1
@@ -98,15 +92,12 @@ def preprocess_for_speed(resume_text: str, max_length: int = 3000) -> str:
     return text[:best_cut].strip() + "..."
 
 def create_optimized_prompt(resume_text: str, job_title: str = None, job_description: str = None) -> str:
-    """Create a streamlined, fast-processing prompt with complete response structure."""
-    
-    # Optimize resume text length
+    """Create a streamlined, fast-processing prompt."""
     resume_text = preprocess_for_speed(resume_text, 2500)
     
-    # Base comprehensive prompt with all required fields
-    base_prompt = f"""Analyze this resume and return ONLY valid JSON:
+    base_prompt = f"""You are an expert resume analyst with 10+ years of experience in technical recruitment and career counseling. Your task is to perform a comprehensive, detailed analysis of this resume assuming the candidate is a new grad applying for internship or junior roles.
 
-RESUME:
+RESUME CONTENT:
 {resume_text}
 
 JSON Structure (return ALL these fields):
@@ -149,7 +140,7 @@ Based on this job description, extract required skills and analyze match."""
         else:
             job_section += f"""
 
-Analyze what skills are typically required for {job_title} role based on industry standards."""
+Analyze what skills are typically required for {job_title} role based on industry standards. Also analyze the resume strictly against the job description if provided."""
         
         # Add ALL missing fields from old logic with proper skill matching logic
         job_section += f"""
@@ -214,108 +205,74 @@ Project Relevance:
     
     return base_prompt
 
-def call_cohere_with_progressive_timeout(prompt: str, analysis_type: str = "basic") -> str:
-    """Call Cohere with progressive timeout strategy and version detection."""
+def call_groq_with_rate_limit(prompt: str, analysis_type: str = "basic") -> str:
+    """Call Groq API with proper rate limiting."""
     
-    # Calculate optimal timeout
+    global _last_api_call_time
+    
+    # Enforce rate limit
+    time_since_last_call = time.time() - _last_api_call_time
+    if time_since_last_call < _min_seconds_between_calls:
+        wait_time = _min_seconds_between_calls - time_since_last_call
+        print(f"⏱️  Rate limiting: waiting {wait_time:.1f}s...")
+        time.sleep(wait_time)
+    
     has_job_info = "JOB:" in prompt
     include_recommendations = "recommendations" in prompt
     optimal_timeout = get_optimal_timeout(has_job_info, include_recommendations, len(prompt))
     
-    # Progressive timeouts: try fast first, then optimal, then extended
-    timeouts = [
-        min(20, optimal_timeout - 10),  # Quick attempt
-        optimal_timeout,                 # Optimal timeout
-        min(optimal_timeout + 20, 90)   # Extended timeout
-    ]
-    
-    last_error = None
-    
-    for i, timeout_val in enumerate(timeouts):
-        try:
-            print(f"Attempt {i+1}: {timeout_val}s timeout...")
-            start_time = time.time()
+    try:
+        print(f"📡 Calling Groq API (timeout: {optimal_timeout}s)...")
+        start_time = time.time()
+        
+        # Initialize Groq client
+        client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
+        
+        # Make the API call
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            model=GROQ_MODELS[0],
+            temperature=0.0,
+            max_tokens=2000,
+        )
+        
+        response_text = chat_completion.choices[0].message.content
+        
+        if response_text:
+            elapsed = time.time() - start_time
+            _last_api_call_time = time.time()
+            print(f"✓ Success in {elapsed:.1f}s")
+            return response_text
             
-            # Try faster model first, then fallback to better model
-            model = MODELS_BY_SPEED[0] if i == 0 else MODELS_BY_SPEED[1]
-            
-            # Create client with specific timeout
-            client = cohere.Client(
-                api_key=os.environ.get('COHERE_API_KEY'),
-                timeout=timeout_val
+    except Exception as e:
+        error_msg = str(e).lower()
+        
+        # Check if it's a rate limit error
+        if "429" in str(e) or "rate limit" in error_msg:
+            raise Exception(
+                "⚠️ Groq API Rate Limit Exceeded\n\n"
+                f"Free tier: 30 req/min, 14,400 req/day\n"
+                "Wait a moment and try again."
             )
-            
-            # Try different API methods based on SDK version
-            response_text = None
-            
-            # Try v5+ syntax first (message parameter)
-            try:
-                response = client.chat(
-                    model=model,
-                    message=prompt,
-                    temperature=0.0,
-                    max_tokens=2000,  # Increased for complete response
-                )
-                response_text = response.text
-            
-            except TypeError as te:
-                if "unexpected keyword argument 'message'" in str(te):
-                    # Try v4 syntax (messages parameter)
-                    print("Using v4 syntax with messages parameter...")
-                    response = client.chat(
-                        model=model,
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=0.0,
-                        max_tokens=2000,
-                    )
-                    response_text = response.message.content
-                else:
-                    raise te
-            
-            except AttributeError as ae:
-                if "chat" in str(ae):
-                    # Fall back to generate API
-                    print("Chat API not available, using generate API...")
-                    response = client.generate(
-                        model="command-r-plus",
-                        prompt=prompt,
-                        max_tokens=2000,
-                        temperature=0.0,
-                    )
-                    response_text = response.generations[0].text
-                else:
-                    raise ae
-            
-            if response_text:
-                elapsed = time.time() - start_time
-                print(f"✓ Success in {elapsed:.1f}s using {model}")
-                return response_text
-            
-        except Exception as e:
-            last_error = e
-            error_msg = str(e).lower()
-            
-            print(f"✗ Attempt {i+1} failed: {error_msg[:100]}...")
-            
-            # Only retry on timeout/rate limit errors
-            if any(keyword in error_msg for keyword in ["timeout", "rate limit", "connection"]):
-                if i < len(timeouts) - 1:
-                    print(f"Retrying with longer timeout...")
-                    time.sleep(2)
-                    continue
-            
-            # For other errors, don't retry
-            break
-    
-    # If all attempts failed
-    raise Exception(f"API call failed after {len(timeouts)} attempts. Last error: {str(last_error)}")
+        
+        # For other errors, raise immediately
+        raise Exception(f"API call failed: {str(e)}")
 
-def parse_cohere_response(response_text: str) -> Dict[str, Any]:
-    """Parse and validate Cohere's JSON response with complete field validation."""
+def parse_groq_response(response_text: str) -> Dict[str, Any]:
+    """Parse and validate Groq's JSON response."""
     try:
         response_text = response_text.strip()
         
-        # Find JSON bounds more reliably
+        # Remove markdown code blocks if present
+        if response_text.startswith("```"):
+            response_text = re.sub(r'^```(?:json)?\s*', '', response_text)
+            response_text = re.sub(r'\s*```$', '', response_text)
+        
         json_start = response_text.find('{')
         json_end = response_text.rfind('}') + 1
         
@@ -325,7 +282,7 @@ def parse_cohere_response(response_text: str) -> Dict[str, Any]:
         json_str = response_text[json_start:json_end]
         result = json.loads(json_str)
         
-        # Validate and ensure ALL required fields from old logic
+        # Ensure required fields
         required_fields = {
             "skills": [],
             "projects": [],
@@ -346,11 +303,10 @@ def parse_cohere_response(response_text: str) -> Dict[str, Any]:
             if field not in result:
                 result[field] = default_value
         
-        # Ensure relevant_projects is populated if missing
         if not result.get("relevant_projects"):
             result["relevant_projects"] = result.get("projects", [])
         
-        # Update analysis counts to match actual data
+        # Update analysis counts
         if "analysis" in result:
             analysis = result["analysis"]
             analysis["total_skills_found"] = len(result.get("skills", []))
@@ -358,34 +314,13 @@ def parse_cohere_response(response_text: str) -> Dict[str, Any]:
             analysis["relevant_projects"] = len(result.get("relevant_projects", []))
             analysis["skills_with_metrics"] = len(result.get("quantifiable_impacts", {}))
             
-            # Recalculate score if missing or zero
             if analysis.get("achieved_score", 0) == 0:
                 total_projects = analysis["total_projects"]
                 if total_projects > 0:
-                    # Use the same scoring logic as old version
                     project_score = (analysis["relevant_projects"] / total_projects) * 40
                     metrics_score = min((analysis["skills_with_metrics"] / total_projects) * 30, 30)
                     skills_score = min((analysis["total_skills_found"] / 20) * 30, 30)
                     analysis["achieved_score"] = round(project_score + metrics_score + skills_score, 2)
-        
-        # Ensure job matching fields have proper structure when present
-        if "job_match" in result:
-            job_match_defaults = {
-                "job_title": "",
-                "required_skills": [],
-                "matched_skills": [],
-                "missing_skills": [],
-                "extra_skills": [],
-                "skill_match_score": 0,
-                "avg_project_relevance": 0,
-                "overall_relevance_score": 0,
-                "overall_fit": "Weak Fit",
-                "project_relevance": {}
-            }
-            
-            for field, default_value in job_match_defaults.items():
-                if field not in result["job_match"]:
-                    result["job_match"][field] = default_value
         
         return result
         
@@ -397,7 +332,7 @@ def parse_cohere_response(response_text: str) -> Dict[str, Any]:
         return create_comprehensive_fallback_analysis(response_text)
 
 def create_comprehensive_fallback_analysis(text: str) -> Dict[str, Any]:
-    """Create a complete analysis structure with all fields if JSON parsing fails."""
+    """Create fallback analysis if parsing fails."""
     return {
         "skills": [],
         "projects": [],
@@ -412,53 +347,46 @@ def create_comprehensive_fallback_analysis(text: str) -> Dict[str, Any]:
             "achieved_score": 0,
             "max_possible_score": 100
         },
-        "error": "Failed to parse AI response - please try again",
-        "raw_response": text[:300] if text else "No response received"
+        "error": "Failed to parse AI response",
+        "raw_response": text[:300] if text else "No response"
     }
 
-def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills: List[str] = None, 
+def analyze_resume_with_groq(file_path: str, job_title: str = None, job_skills: List[str] = None, 
                              job_description: str = None, profile: str = "general") -> Dict[str, Any]:
-    """
-    Optimized resume analysis with complete response structure and smart timeout handling.
-    """
+    """Analyze resume using Groq API."""
     try:
-        print("🚀 Starting optimized resume analysis...")
+        print("🚀 Starting resume analysis with Groq...")
         
-        # Extract text
         if file_path.endswith(".pdf"):
             text = extract_text_from_pdf(file_path)
         elif file_path.endswith(".docx"):
             text = extract_text_from_docx(file_path)
         else:
-            raise ValueError("Unsupported file format. Only .pdf and .docx supported.")
+            raise ValueError("Unsupported file format")
         
         if not text.strip():
-            raise ValueError("No text could be extracted from the file.")
+            raise ValueError("No text extracted from file")
         
-        print(f"📄 Extracted {len(text)} characters from resume")
+        print(f"📄 Extracted {len(text)} characters")
         
-        # Create optimized prompt with complete structure
         prompt = create_optimized_prompt(text, job_title, job_description)
         print(f"📝 Generated {len(prompt)} character prompt")
         
-        # Determine analysis type for timeout calculation
         analysis_type = "complex" if job_title and job_description else "basic"
         
-        # Call API with progressive timeout strategy
-        response_text = call_cohere_with_progressive_timeout(prompt, analysis_type)
+        # Single API call
+        response_text = call_groq_with_rate_limit(prompt, analysis_type)
+        result = parse_groq_response(response_text)
         
-        # Parse response with complete field validation
-        result = parse_cohere_response(response_text)
-        
-        # Add metadata
         result["processing_info"] = {
             "resume_length": len(text),
             "prompt_length": len(prompt),
             "analysis_type": analysis_type,
-            "timestamp": time.time()
+            "timestamp": time.time(),
+            "api": "groq"
         }
         
-        print("✅ Analysis completed successfully")
+        print("✅ Analysis completed")
         return result
         
     except Exception as e:
@@ -479,62 +407,39 @@ def analyze_resume_with_cohere(file_path: str, job_title: str = None, job_skills
                 "achieved_score": 0,
                 "max_possible_score": 100
             },
-            "error": f"Analysis failed: {error_msg}",
+            "error": error_msg,
             "processing_info": {
                 "error_time": time.time(),
-                "analysis_type": "failed"
+                "analysis_type": "failed",
+                "api": "groq"
             }
         }
 
-def test_cohere_connection() -> bool:
-    """Test Cohere API connection with optimized settings and version detection."""
+def test_groq_connection() -> bool:
+    """Test Groq API connection."""
     try:
-        print("🔧 Testing Cohere connection...")
+        print("🔧 Testing Groq connection...")
         
-        client = cohere.Client(
-            api_key=os.environ.get('COHERE_API_KEY'),
-            timeout=10  # Short timeout for test
+        client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
+        
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": "Reply with just: 'OK'"}],
+            model=GROQ_MODELS[0],
+            temperature=0.0,
+            max_tokens=10
         )
         
-        # Try different API methods
-        response_text = None
-        
-        try:
-            # Try v5+ syntax first
-            response = client.chat(
-                model="command-r-08-2024",  # Use faster model for test
-                message="Reply with just: 'Connection OK'",
-                temperature=0.0,
-                max_tokens=10
-            )
-            response_text = response.text
-        except TypeError:
-            try:
-                # Try v4 syntax
-                response = client.chat(
-                    model="command-r-08-2024",
-                    messages=[{"role": "user", "content": "Reply with just: 'Connection OK'"}],
-                    temperature=0.0,
-                    max_tokens=10
-                )
-                response_text = response.message.content
-            except AttributeError:
-                # Fall back to generate API
-                response = client.generate(
-                    model="command-r-plus",
-                    prompt="Reply with just: 'Connection OK'",
-                    max_tokens=10,
-                    temperature=0.0
-                )
-                response_text = response.generations[0].text
-        
-        success = response_text and "connection ok" in response_text.lower()
-        print(f"✅ Connection test: {'PASSED' if success else 'FAILED'}")
+        response_text = chat_completion.choices[0].message.content
+        success = response_text and "ok" in response_text.lower()
+        print(f"✅ Connection: {'PASSED' if success else 'FAILED'}")
         return success
         
     except Exception as e:
-        print(f"❌ Connection test failed: {str(e)}")
+        print(f"❌ Connection failed: {str(e)}")
+        print("Get your API key at: https://console.groq.com/keys")
         return False
 
 # Backwards compatibility
-analyze_resume = analyze_resume_with_cohere
+analyze_resume = analyze_resume_with_groq
+analyze_resume_with_cohere = analyze_resume_with_groq
+analyze_resume_with_gemini = analyze_resume_with_groq
