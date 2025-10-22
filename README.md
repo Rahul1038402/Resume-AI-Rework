@@ -41,7 +41,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 
 ### Backend
 - **Flask** - Python web framework
-- **Cohere AI** - Advanced language model for resume analysis
+- **Groq AI** - Advanced language model for resume analysis
 - **Python 3.11.9** - Recommended Python version
 
 ### Database & Auth
@@ -59,7 +59,7 @@ RESUME-AI/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py          # Flask app factory
-│   │   ├── cohere_analyzer.py   # AI analysis logic
+│   │   ├── groq_analyzer.py   # AI analysis logic
 │   │   ├── main.py              # Application entry point
 │   │   ├── routes.py            # API endpoints
 │   │   └── utils.py             # Helper functions
@@ -164,7 +164,7 @@ npm run dev
 
 ## 🙏 Acknowledgments
 
-- **Cohere AI** for powerful language model capabilities
+- **Groq AI** for powerful language model capabilities
 - **Supabase** for backend-as-a-service platform
 - **Vercel** and **Render** for reliable hosting solutions
 
