@@ -1,11 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MenuIcon, X, LogOut, NotepadText } from "lucide-react";
+import { MenuIcon, X, LogOut, NotepadText, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ThemeToggle from "./ThemeToggle";
 import GradientText from "@/components/ui/GradientText";
 import { useEffect, useState } from "react";
-import { supabase } from '../lib/supabaseClient'
+import { supabase } from '../lib/supabaseClient';
+import { useTheme } from "@/hooks/use-theme";
 
 type NavItem = {
   name: string;
@@ -25,6 +25,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
+  const { theme, setTheme } = useTheme();
 
   const location = useLocation();
 
@@ -94,182 +95,205 @@ const Header = () => {
     <header
       className={cn(
         "fixed w-full z-40 transition-all duration-300 border-b border-gray-200 dark:border-gray-800 bg-gray-200/90 dark:bg-black/90",
-        isMenuOpen
-          ? "bg-transparent py-3"
-          : isScrolled
-            ? "py-2"
-            : "py-3"
+        isScrolled ? "py-2" : "py-3"
       )}
     >
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="text-2xl font-bold text-resume-primary dark:text-white relative z-50">
-            <GradientText
-              colors={["#9BBD67", "#26C168", "#92C8C0", "#4079ff", "#E3F1E8"]}
-              animationSpeed={10}
-              showBorder={false}
-              className="text-2xl"
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center">
+          {/* Left: Logo */}
+          <div className="flex items-center gap-2">
+            <Link to="/" className="text-2xl font-bold text-resume-primary dark:text-white relative z-50">
+              <GradientText
+                colors={["#9BBD67", "#26C168", "#92C8C0", "#4079ff", "#E3F1E8"]}
+                animationSpeed={10}
+                showBorder={false}
+                className="text-2xl"
+              >
+                ResumeAI
+              </GradientText>
+            </Link>
+          </div>
+
+          {/* Center: Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            {navItems
+              .filter((item) => {
+                if (location.pathname === "/" && item.href === "/") return false;
+                if (location.pathname !== "/" && item.href === "/about") return false;
+                return true;
+              })
+              .map((item, index) => (
+                <Link
+                  key={index}
+                  to={item.href}
+                  className="text-gray-600 hover:text-resume-primary transition-colors duration-200 dark:text-gray-300 dark:hover:text-white whitespace-nowrap"
+                >
+                  {item.name}
+                </Link>
+              ))}
+          </nav>
+
+          {/* Right: Desktop Actions */}
+          <div className="hidden lg:flex items-center gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle theme"
             >
-              ResumeAI
-            </GradientText>
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-8">
-          {navItems
-            .filter((item) => {
-              if (location.pathname === "/" && item.href === "/") return false; // hide Home on Home
-              if (location.pathname !== "/" && item.href === "/about") return false; // hide About Us on other pages
-              return true;
-            })
-            .map((item, index) => (
-              <Link
-                key={index}
-                to={item.href}
-                className="text-gray-600 hover:text-resume-primary transition-colors duration-200 dark:text-gray-300 dark:hover:text-white"
-              >
-                {item.name}
-              </Link>
-            ))}
-        </nav>
-
-        {/* Desktop Actions */}
-        <div className="hidden lg:flex items-center gap-2">
-          <ThemeToggle />
-          {user ? (
-            // User Avatar and Menu
-            <div className="relative user-menu-container">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <img
-                  src={user.user_metadata?.avatar_url}
-                  alt="Profile"
-                  className="size-9 rounded-full border-2 border-gray-200 dark:border-gray-700"
-                />
-              </button>
-
-              {/* User Dropdown Menu */}
-              {showUserMenu && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-black/90 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user.user_metadata?.full_name || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user.email}
-                    </p>
-                  </div>
-                  <Link
-                    to="/tracker"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    <NotepadText className="w-4 h-4" />
-                    Job Tracker Dashboard
-                  </Link>
-                  <button
-                    onClick={signOut}
-                    className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-red-200 dark:hover:bg-red-500/80 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </button>
-                </div>
+              {theme === "dark" ? (
+                <Sun className="size-5 text-yellow-300" />
+              ) : (
+                <Moon className="size-5 text-blue-900" />
               )}
-            </div>
-          ) : (
-            // Sign In Button
-            <Button
-              onClick={signInWithGoogle}
-              variant="default"
-              className="bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90"
-            >
-              Sign In
-            </Button>
-          )}
-        </div>
+            </button>
 
-        {/* Mobile Toggle Button */}
-        <div className="lg:hidden flex items-center gap-2">
-          <ThemeToggle />
-          <button
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="p-2 text-gray-600 dark:text-gray-300 z-50"
-            aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
-          >
-            {isMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
-          </button>
-        </div>
+            {user ? (
+              // User Avatar and Menu
+              <div className="relative user-menu-container">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <img
+                    src={user.user_metadata?.avatar_url}
+                    alt="Profile"
+                    className="size-9 rounded-full border-2 border-gray-200 dark:border-gray-700"
+                  />
+                </button>
 
-        {/* Mobile Menu */}
-        <div
-          className={cn(
-            "fixed inset-0 bg-white/95 dark:bg-black/95 backdrop-blur-md z-40 flex flex-col items-center justify-center",
-            "transition-all duration-300 lg:hidden",
-            isMenuOpen
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
-          )}
-        >
-          <div className="flex flex-col space-y-8 text-xl text-center">
-            {navItems.map((item, index) => (
-              <Link
-                key={index}
-                to={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-resume-primary transition-colors duration-200 dark:text-gray-300 dark:hover:text-white"
-              >
-                {item.name}
-              </Link>
-            ))}
-
-            {/* Mobile Auth Section */}
-            <div className="mt-8 flex flex-col items-center gap-4">
-              {user ? (
-                <div className="flex flex-col items-center gap-4 p-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user.user_metadata?.avatar_url}
-                      alt="Profile"
-                      className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-700"
-                    />
-                    <div className="text-left">
-                      <p className="text-base font-medium text-gray-900 dark:text-white">
+                {/* User Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-black/90 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {user.user_metadata?.full_name || 'User'}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {user.email}
                       </p>
                     </div>
+                    <Link
+                      to="/tracker"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <NotepadText className="w-4 h-4" />
+                      Job Tracker Dashboard
+                    </Link>
+                    <button
+                      onClick={signOut}
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-red-200 dark:hover:bg-red-500/80 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
                   </div>
-                  <Button
-                    onClick={() => {
-                      signOut();
-                      setIsMenuOpen(false);
-                    }}
-                    variant="outline"
-                    className="flex items-center gap-2 bg-red-200 dark:bg-red-600/80"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </Button>
-                </div>
+                )}
+              </div>
+            ) : (
+              // Sign In Button
+              <Button
+                onClick={signInWithGoogle}
+                variant="default"
+                className="bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90"
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
+
+          {/* Right: Mobile Toggle Button */}
+          <div className="lg:hidden flex items-center gap-2">
+            {/* Theme Toggle Mobile */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="size-5 text-yellow-300" />
               ) : (
+                <Moon className="size-5 text-blue-900" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className="p-2 text-gray-600 dark:text-gray-300 z-50"
+              aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
+            >
+              {isMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-white/95 dark:bg-black/95 backdrop-blur-md z-40 flex flex-col items-center justify-center",
+          "transition-all duration-300 lg:hidden",
+          isMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="flex flex-col space-y-8 text-xl text-center">
+          {navItems.map((item, index) => (
+            <Link
+              key={index}
+              to={item.href}
+              onClick={() => setIsMenuOpen(false)}
+              className="text-gray-600 hover:text-resume-primary transition-colors duration-200 dark:text-gray-300 dark:hover:text-white"
+            >
+              {item.name}
+            </Link>
+          ))}
+
+          {/* Mobile Auth Section */}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            {user ? (
+              <div className="flex flex-col items-center gap-4 p-4">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={user.user_metadata?.avatar_url}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-700"
+                  />
+                  <div className="text-left">
+                    <p className="text-base font-medium text-gray-900 dark:text-white">
+                      {user.user_metadata?.full_name || 'User'}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
                 <Button
                   onClick={() => {
-                    signInWithGoogle();
+                    signOut();
                     setIsMenuOpen(false);
                   }}
-                  variant="default"
-                  className="bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90"
+                  variant="outline"
+                  className="flex items-center gap-2 bg-red-200 dark:bg-red-600/80"
                 >
-                  Sign In
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
                 </Button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  signInWithGoogle();
+                  setIsMenuOpen(false);
+                }}
+                variant="default"
+                className="bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90"
+              >
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -5,8 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume AI - ATS Friendly</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "CMU Serif", "Computer Modern Serif", "Times New Roman", Times, serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 8.5in;
+            margin: 0 auto;
+            background: white;
+            padding: 0.5in;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
         .download-btn {
             position: fixed;
             top: 20px;
@@ -19,141 +38,404 @@
             cursor: pointer;
             font-size: 14px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
         }
 
         .download-btn:hover {
             background: #2980b9;
         }
 
+        /* Header Styles */
+        .header {
+            text-align: center;
+            padding-bottom: 10pt;
+            margin-bottom: 10pt;
+        }
+
+        .header h1 {
+            font-size: 30pt;
+            font-weight: normal;
+            letter-spacing: 0.02em;
+            margin-bottom: 2px;
+        }
+
+        .header .job-title {
+            font-size: 15pt;
+            font-weight: normal;
+            margin-bottom: 4pt;
+        }
+
+        .header .social-links {
+            font-size: 12pt;
+            font-weight: normal;
+        }
+
+        .header .social-links a {
+            color: rgb(0, 51, 153);
+            text-decoration: none;
+        }
+
+        .header .contact-info {
+            font-size: 12pt;
+            font-weight: normal;
+            color: rgb(0, 51, 153);
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 10pt;
+        }
+
+        .section h2 {
+            font-size: 18pt;
+            letter-spacing: 0.5pt;
+            font-variant: small-caps;
+            text-align: left;
+            font-weight: normal;
+            margin-bottom: 0;
+            padding-bottom: 1pt;
+            border-bottom: 0.4pt solid black;
+            margin-top: 10pt;
+        }
+
+        .section-content {
+            margin-top: 6pt;
+        }
+
+        /* Summary */
+        .summary-text {
+            text-align: justify;
+            font-size: 12pt;
+            font-weight: normal;
+            margin-top: 6pt;
+            margin-bottom: 0;
+        }
+
+        /* Experience */
+        .experience-item {
+            margin-bottom: 9pt;
+            font-weight: normal;
+            font-size: 12pt;
+        }
+
+        .experience-header {
+            margin-bottom: 6pt;
+            margin-top: 10pt;
+            font-size: 14pt;
+            font-weight: bolder;
+        }
+
+        .achievement-list {
+            font-size: 12pt;
+            margin-top: 6pt;
+            margin-bottom: 0;
+            margin-left: 1em;
+            padding-left: 0;
+            list-style-type: none;
+            font-weight: normal;
+        }
+
+        .achievement-list li {
+            line-height: 1.3;
+            margin-bottom: 3pt;
+            position: relative;
+            padding-left: 1.2em;
+        }
+
+        .achievement-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+        }
+
+        /* Skills */
+        .skills-grid {
+            font-size: 12pt;
+            margin-top: 6pt;
+        }
+
+        .skill-row {
+            margin-bottom: 2px;
+            display: flex;
+        }
+
+        .skill-label {
+            font-weight: normal;
+            min-width: 110pt;
+            display: inline-block;
+        }
+
+        .skill-value {
+            font-weight: normal;
+            flex: 1;
+        }
+
+        /* Projects */
+        .project-item {
+            margin-bottom: 9pt;
+            font-weight: normal;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2pt;
+        }
+
+        .project-header h3 {
+            font-size: 14pt;
+            font-weight: bolder;
+            margin: 0;
+        }
+
+        .project-link {
+            font-size: 12pt;
+            font-weight: normal;
+            color: rgb(0, 51, 153);
+            text-decoration: none;
+        }
+
+        .project-link:hover {
+            text-decoration: underline;
+        }
+
+        .project-tech {
+            font-size: 12pt;
+            font-style: italic;
+            margin-bottom: 2pt;
+            margin-top:6pt;
+            font-weight: normal;
+        }
+
+        /* Education */
+        .education-item {
+            margin-bottom: 6pt;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 12pt;
+            font-weight: normal;
+        }
+
+        .education-item .field,
+        .education-item .institution {
+            font-weight: bold;
+        }
+
+        .cert-list {
+            font-size: 12pt;
+            margin-top: 6pt;
+            margin-bottom: 0;
+            margin-left: 1em;
+            padding-left: 0;
+            list-style-type: none;
+            font-weight: normal;
+        }
+
+        .cert-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4pt;
+            line-height: 1.3;
+            position: relative;
+            padding-left: 1.2em;
+        }
+
+
+
+        .cert-list li a {
+            color: rgb(0, 51, 153);
+            text-decoration: none;
+            font-size: 12pt;
+        }
+
+        .cert-list li a:hover {
+            text-decoration: underline;
+        }
+
+        .cert-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+        }
+
+
         @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 0.5in;
+                max-width: 100%;
+            }
+
             .download-btn {
                 display: none;
             }
 
-            body {
-                margin: 0;
-                padding: 0.4in;
+            @page {
+                size: letter;
+                margin: 0.5in;
             }
         }
     </style>
 </head>
 
-<body class="bg-white text-gray-800 leading-relaxed max-w-[8.5in] mx-auto p-[0.4in]">
-
-    <!-- Download button -->
+<body>
     <button class="download-btn" onclick="window.print()">📄 Download as PDF</button>
 
-    <!-- Header -->
-    <div class="text-center mb-6 border-b-2 border-black pb-4">
-        <div class="text-3xl font-bold text-gray-900 mb-1">Your Name</div>
-        <div class="text-base text-gray-600 mb-2">Your Target Job Title</div>
-        <div class="text-sm mt-2 text-gray-700 flex justify-center">
-            <a href="https://demo/" class="font-semibold text-black underline">demo@gmail.com</a>
-            <span class="mx-1 text-gray-500">•</span>
-            <p class=" text-black no-underline">+91 12345 67890</p>
-            <span class="mx-1 text-gray-500">•</span>
-            <p class=" text-black no-underline">Sector XX, City, State</p>
-        </div>
-        <div class="text-sm mt-2 text-gray-700">
-            <a href="https://demo/" class="font-semibold text-black underline">LinkedIn</a>
-            <span class="mx-1 text-gray-500">•</span>
-            <a href="https://demo/" class="font-semibold text-black underline">GitHub</a>
-            <span class="mx-1 text-gray-500">•</span>
-            <a href="https://demo/" class="font-semibold text-black underline">Portfolio</a>
-            <span class="mx-1 text-gray-500">•</span>
-            <a href="https://demo/" class="font-semibold text-black underline">LeetCode</a>
-        </div>
-    </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Your Name</h1>
+            <p class="job-title">Software Engineer</p>
 
-    <!-- Summary -->
-    <div class="mb-6">
-        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Summary</div>
-        <p class="text-sm text-gray-700">
-            Brief 2-3 line summary highlighting your key skills, experience level, and career focus.
-            Include specific technologies and mention what type of projects you've worked on.
-        </p>
-    </div>
-
-    <!-- Technical Skills -->
-    <div class="mb-6">
-        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Technical Skills</div>
-        <div class="text-sm flex mb-1">
-            <p class="font-bold pr-2">Frontend:</p> Skill 1, Skill 2, Skill 3
-        </div>
-        <div class="text-sm flex mb-1">
-            <p class="font-bold pr-2">Backend:</p> Skill 1, Skill 2, Skill 3
-        </div>
-        <div class="text-sm flex mb-1">
-            <p class="font-bold pr-2">Soft Skills:</p> Skill 1, Skill 2, Skill 3
-        </div>
-    </div>
-
-    <!-- Projects -->
-    <div class="mb-6">
-        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Projects</div>
-
-        <div class="mb-5">
-            <div class="flex justify-between items-center font-bold text-sm text-gray-900">
-                <span>Project Name 1</span>
-                <a href="http://demo/" class="text-xs text-black underline">Link</a>
+            <div class="social-links">
+                <span>
+                    <a href="https://github.com/username">Github: github.com/username</a>
+                    |
+                </span>
+                <a href="https://www.linkedin.com/in/username">LinkedIn: www.linkedin.com/in/username</a>
             </div>
-            <div class="italic text-xs text-gray-600 mb-2">Tech Stack: React, Node.js, MongoDB, JWT Authentication</div>
-            <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
-                <li>Developed a full-stack web application with user authentication and real-time features</li>
-                <li>Optimized database queries reducing page load time by 25%</li>
-                <li>Deployed on AWS with CI/CD pipeline handling 100+ concurrent users</li>
-            </ul>
-        </div>
 
-        <div>
-            <div class="flex justify-between items-center font-bold text-sm text-gray-900">
-                <span>Project Name 2</span>
-                <a href="http://demo/" class="text-xs text-black underline">Link</a>
+            <div class="contact-info">
+                <span>user@gmail.com</span>
+                |
+                <span>+91 1234567890</span>
+                |
+                <span>Location</span>
             </div>
-            <div class="italic text-xs text-gray-600 mb-2">Tech Stack: Python, Flask, Machine Learning, pandas,
-                scikit-learn</div>
-            <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
-                <li>Built an AI-powered data analysis tool processing 10,000+ records</li>
-                <li>Achieved 85% accuracy in predictions using machine learning algorithms</li>
-                <li>Reduced manual data processing time by 60% through automation</li>
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+            <h2>Summary</h2>
+            <p class="summary-text">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi veniam temporibus doloremque dolorum
+                recusandae natus consequuntur voluptatum dolore! Iusto excepturi at nesciunt vel beatae dicta mollitia
+                assumenda inventore similique eveniet a qui ipsa esse placeat nobis!
+            </p>
+        </div>
+
+        <!-- Experience -->
+        <div class="section">
+            <h2>Experience</h2>
+            <div class="section-content">
+                <div class="experience-item">
+                    <div class="experience-header">
+                        <span class="date">2024</span>
+                        <span style="margin-left: 1em;"></span>
+                        <span class="role">SDE</span>
+                        <span class="company"> at </span>
+                        <span class="role">XYZ</span>
+                    </div>
+                    <ul class="achievement-list">
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam nobis blanditiis odit iure
+                            iusto pariatur.</li>
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum fugit alias eius vel animi
+                            natus.</li>
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati libero sint, quaerat
+                            praesentium sed facilis.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="section">
+            <h2>Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-row">
+                    <span class="skill-label">Category 1:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+                <div class="skill-row">
+                    <span class="skill-label">Category 2:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+                <div class="skill-row">
+                    <span class="skill-label">Category 3:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+                <div class="skill-row">
+                    <span class="skill-label">Category 4:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="section">
+            <h2>Projects</h2>
+            <div class="section-content">
+                <div class="project-header">
+                    <h3>Project 1: 5–6 words description</h3>
+                    <a href="https://demo.com" class="project-link">Live Demo</a>
+                </div>
+
+                <p class="project-tech">Tech Stack: Skill 1, Skill 2, Skill 3</p>
+                <ul class="achievement-list">
+                    <li>[What the project is about]</li>
+                    <li>[What problem it solves]</li>
+                    <li>[Impact with numbers]</li>
+                </ul>
+
+                <div class="project-header">
+                    <h3>Project 2: 5–6 words description</h3>
+                    <a href="https://demo.com" class="project-link">Live Demo</a>
+                </div>
+
+                <p class="project-tech">Tech Stack: Skill 1, Skill 2, Skill 3</p>
+                <ul class="achievement-list">
+                    <li>[What the project is about]</li>
+                    <li>[What problem it solves]</li>
+                    <li>[Impact with numbers]</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Certifications & Achievements -->
+        <div class="section">
+            <h2>Certifications & Achievements</h2>
+            <ul class="cert-list">
+                <li>
+                    <span>Certification / Achievement 1</span>
+                    <a href="https://demo.com" target="_blank">View Credential</a>
+                </li>
+                <li>
+                    <span>Certification / Achievement 2</span>
+                    <a href="#">View Credential</a>
+                </li>
+                <li>
+                    <span>Certification / Achievement 3</span>
+                    <a href="#">View Credential</a>
+                </li>
             </ul>
         </div>
-    </div>
 
 
-    <!-- Experience -->
-    <div class="mb-6">
-        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Experience</div>
-        <div>
-            <div class="font-bold text-sm text-gray-900">Intern / Part-time Role (if applicable)</div>
-            <div class="text-xs text-gray-600 mb-2">Company Name • Duration (e.g., Jun 2024 - Aug 2024)</div>
-            <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
-                <li>Collaborated with development team on feature implementation and bug fixes</li>
-                <li>Contributed to codebase with 15+ pull requests and code reviews</li>
-            </ul>
+        <!-- Education -->
+        <div class="section">
+            <h2>Education</h2>
+            <div class="section-content">
+                <div class="education-item">
+                    <div>
+                        <span>2018 - 2022</span>
+                        <span style="margin-left: 1em;">Degree in </span>
+                        <span class="field">Major</span>
+                        <span> at </span>
+                        <span class="institution">Institution Name</span>
+                    </div>
+                    <span style="margin-left: 1em;">[GPA if good]</span>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Education -->
-    <div class="mb-6">
-        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Education</div>
-        <div>
-            <div class="font-bold text-sm text-gray-900">Degree Name - Field of Study</div>
-            <div class="text-xs text-gray-600">Institution Name • Expected Graduation: Graduation Date • GPA: GPA
-                (optional)</div>
-        </div>
-    </div>
-
-    <!-- Certifications -->
-    <div class="mb-6">
-        <div class="uppercase font-bold text-sm text-gray-900 border-b border-gray-300 pb-1 mb-2">Certifications /
-            Achievements</div>
-        <ul class="list-disc list-outside ml-5 text-xs text-gray-700">
-            <li><strong>Google Cloud Platform Certified</strong> - Google Cloud (2025) - Credential ID: XXXXXX</li>
-            <li><strong>Hackathon Winner</strong> - XYZ Tech Fest (2024)</li>
-        </ul>
-    </div>
-
 </body>
 
 </html>

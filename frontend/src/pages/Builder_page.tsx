@@ -1,200 +1,82 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit3, Download, User, Briefcase, GraduationCap, Award, Code, FolderOpen, Settings, Eye, X, Lightbulb, Check, RotateCcw, NotebookPen } from 'lucide-react';
+import { Plus, Trash2, Edit3, Download, User, Briefcase, GraduationCap, Award, Code, FolderOpen, Settings, Eye, X, Lightbulb, Check, RotateCcw, NotebookPen, FileText } from 'lucide-react';
 import Header from '@/components/Header';
 import ShinyText from '@/components/ui/ShinyText';
 import { cn } from '@/lib/utils';
 import '../index.css';
 import GradientText from '@/components/ui/GradientText';
+import {
+    PersonalInfo,
+    Education,
+    Project,
+    Experience,
+    Certification,
+    SkillCategory,
+    Skills,
+    ResumeData,
+    ActiveTab,
+    ActiveSection,
+    LayoutSettings,
+    WarningConfig
+} from '../ResumeBuilder/types/index';
 
-interface PersonalInfo {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    location: string;
-    targetJobTitle: string;
-    linkedinUrl?: string;
-    githubUrl?: string;
-    portfolioUrl?: string;
-    leetcodeUrl?: string;
-}
+const STORAGE_KEY_RESUME = 'resumeData';
+const STORAGE_KEY_LAYOUT = 'layoutSettings';
+const STORAGE_KEY_LAST_SAVED = 'lastSaved';
 
-interface Education {
-    id: string;
-    institution: string;
-    degree: string;
-    field: string;
-    graduationDate: string;
-    gpa?: string;
-}
+const loadFromLocalStorage = (key: string): any => {
+    try {
+        const saved = localStorage.getItem(key);
+        return saved ? JSON.parse(saved) : null;
+    } catch (error) {
+        console.error(`Error loading ${key}:`, error);
+        return null;
+    }
+};
 
-interface Project {
-    id: string;
-    title: string;
-    technologies: string;
-    description: string[];
-    link?: string;
-}
+const saveToLocalStorage = (key: string, data: any): void => {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+        console.error(`Error saving ${key}:`, error);
+    }
+};
 
-interface Experience {
-    id: string;
-    title: string;
-    company: string;
-    duration: string;
-    description: string[];
-}
+const getDefaultResumeData = (): ResumeData => ({
+    personalInfo: {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        location: '',
+        targetJobTitle: '',
+        linkedinUrl: '',
+        githubUrl: '',
+    },
+    summary: '',
+    skills: {
+        categories: []
+    },
+    projects: [],
+    experience: [],
+    education: [],
+    certifications: []
+});
 
-interface Certification {
-    id: string;
-    name: string;
-    issuer: string;
-    date: string;
-    credentialId?: string;
-    link?: string;
-}
-
-interface SkillCategory {
-    id: string;
-    name: string;
-    value: string;
-}
-
-interface Skills {
-    categories: SkillCategory[];
-}
-
-interface ResumeData {
-    personalInfo: PersonalInfo;
-    summary: string;
-    skills: Skills;
-    projects: Project[];
-    experiences: Experience[];
-    education: Education[];
-    certifications: Certification[];
-}
-
-type ActiveTab = 'editor' | 'layout';
-type ActiveSection = 'personal' | 'summary' | 'skills' | 'projects' | 'experience' | 'education' | 'certifications';
-
-interface LayoutSettings {
-    fontSize: number;
-    lineHeight: string;
-    pageSize: string;
-    fontFamily: string;
+const getDefaultLayoutSettings = (): LayoutSettings => ({
+    fontSize: 11,
+    lineHeight: '1.2',
+    pageSize: 'A4',
+    fontFamily: '"CMU Serif", "Computer Modern Serif", Georgia, serif',
     margins: {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-    };
-}
-
-// LocalStorage constants
-const STORAGE_KEY_RESUME = 'resume-builder-data';
-const STORAGE_KEY_LAYOUT = 'resume-builder-layout';
-const STORAGE_KEY_TIMESTAMP = 'resume-builder-timestamp';
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: 20
+    }
+});
 
 export default function ResumeBuilder() {
-    const [activeTab, setActiveTab] = useState<ActiveTab>('editor');
-    const [activeSection, setActiveSection] = useState<ActiveSection>('personal');
-    const [isSuggestionsOpen, setIsSuggestionsOpen] = useState<boolean>(false);
-    const [lastSaved, setLastSaved] = useState<string>('');
-
-    // LocalStorage utility functions
-    const saveToLocalStorage = (key: string, data: any) => {
-        try {
-            localStorage.setItem(key, JSON.stringify(data));
-            localStorage.setItem(STORAGE_KEY_TIMESTAMP, new Date().toISOString());
-            setLastSaved(new Date().toLocaleTimeString());
-        } catch (error) {
-            console.error('Failed to save to localStorage:', error);
-        }
-    };
-
-    const loadFromLocalStorage = (key: string) => {
-        try {
-            const saved = localStorage.getItem(key);
-            return saved ? JSON.parse(saved) : null;
-        } catch (error) {
-            console.error('Failed to load from localStorage:', error);
-            return null;
-        }
-    };
-
-    const getDefaultResumeData = (): ResumeData => ({
-        personalInfo: {
-            firstName: 'Your Name',
-            lastName: '',
-            email: 'abc@gmail.com',
-            phone: '+91 12345 67890',
-            location: 'Sector XX, City, State',
-            targetJobTitle: 'Your Target Job Title'
-        },
-        summary: 'A short professional summary goes here. Highlight your key skills and experience in 2-3 sentences.',
-        skills: {
-            categories: [
-                { id: '1', name: 'Frontend', value: 'Skill 1, Skill 2, Skill 3' },
-                { id: '2', name: 'Backend', value: 'Skill 1, Skill 2, Skill 3' },
-                { id: '3', name: 'Database', value: 'Skill 1, Skill 2, Skill 3' },
-            ]
-        },
-        projects: [],
-        experiences: [],
-        education: [
-            {
-                id: '1',
-                institution: 'Institution Name',
-                degree: 'Degree Name',
-                field: 'Field of Study',
-                graduationDate: 'Graduation Date',
-                gpa: 'GPA (optional)'
-            }
-        ],
-        certifications: []
-    });
-
-    const getDefaultLayoutSettings = (): LayoutSettings => ({
-        fontSize: 9.5,
-        lineHeight: "1.3",
-        pageSize: "A4",
-        fontFamily: "Arial",
-        margins: {
-            left: 0.5,
-            right: 0.5,
-            top: 0.5,
-            bottom: 0.5,
-        },
-    });
-
-    const resetAllData = () => {
-        const confirmReset = window.confirm(
-            "Are you sure you want to reset all data? This will permanently delete all your resume information and cannot be undone."
-        );
-
-        if (confirmReset) {
-            try {
-                // Clear localStorage
-                localStorage.removeItem(STORAGE_KEY_RESUME);
-                localStorage.removeItem(STORAGE_KEY_LAYOUT);
-                localStorage.removeItem(STORAGE_KEY_TIMESTAMP);
-
-                // Reset state to defaults
-                setResumeData(getDefaultResumeData());
-                setLayoutSettings(getDefaultLayoutSettings());
-                setLastSaved('');
-
-                // Reset UI state
-                setActiveTab('editor');
-                setActiveSection('personal');
-                setEditingId(null);
-                setEditingName('');
-            } catch (error) {
-                console.error('Failed to reset data:', error);
-                alert('Failed to reset data. Please try again.');
-            }
-        }
-    };
-
     const [resumeData, setResumeData] = useState<ResumeData>(() => {
         const saved = loadFromLocalStorage(STORAGE_KEY_RESUME);
         return saved || getDefaultResumeData();
@@ -205,70 +87,52 @@ export default function ResumeBuilder() {
         return saved || getDefaultLayoutSettings();
     });
 
-    const [editingId, setEditingId] = useState(null);
-    const [editingName, setEditingName] = useState('');
-
-    // Auto-save resume data to localStorage
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            saveToLocalStorage(STORAGE_KEY_RESUME, resumeData);
-        }, 1000); // Debounce saves by 1 second
-
-        return () => clearTimeout(timeoutId);
-    }, [resumeData]);
-
-    // Auto-save layout settings to localStorage
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            saveToLocalStorage(STORAGE_KEY_LAYOUT, layoutSettings);
-        }, 500); // Shorter debounce for layout changes
-
-        return () => clearTimeout(timeoutId);
-    }, [layoutSettings]);
-
-    // Load timestamp on mount
-    useEffect(() => {
-        const timestamp = localStorage.getItem(STORAGE_KEY_TIMESTAMP);
-        if (timestamp) {
-            const date = new Date(timestamp);
-            setLastSaved(date.toLocaleTimeString());
+    const [activeTab, setActiveTab] = useState<ActiveTab>('editor');
+    const [activeSection, setActiveSection] = useState<ActiveSection>('personal');
+    const [lastSaved, setLastSaved] = useState<string>('');
+    const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+    const [warnings, setWarnings] = useState<string[]>([]);
+    const [warningConfig] = useState<WarningConfig>({
+        enabled: true,
+        thresholds: {
+            minProjects: 2,
+            minExperience: 1,
+            minSkillCategories: 3,
+            minEducation: 1
         }
-    }, []);
+    });
 
+    // Update functions
     const updatePersonalInfo = (field: keyof PersonalInfo, value: string) => {
         setResumeData(prev => ({
             ...prev,
-            personalInfo: { ...prev.personalInfo, [field]: value }
+            personalInfo: {
+                ...prev.personalInfo,
+                [field]: value
+            }
         }));
+    };
+
+    const updateSummary = (value: string) => {
+        setResumeData(prev => ({ ...prev, summary: value }));
     };
 
     const addSkillCategory = () => {
-        const newCategory = {
+        const newCategory: SkillCategory = {
             id: Date.now().toString(),
-            name: 'New Category',
+            name: '',
             value: ''
         };
-
         setResumeData(prev => ({
             ...prev,
             skills: {
                 ...prev.skills,
-                categories: [...(prev.skills.categories || []), newCategory]
+                categories: [...prev.skills.categories, newCategory]
             }
         }));
     };
 
-    const removeSkillCategory = (id) => {
-        setResumeData(prev => ({
-            ...prev,
-            skills: {
-                ...prev.skills,
-                categories: prev.skills.categories.filter(cat => cat.id !== id)
-            }
-        }));
-    };
-
-    const updateSkillCategory = (id, field, value) => {
+    const updateSkillCategory = (id: string, field: keyof SkillCategory, value: string) => {
         setResumeData(prev => ({
             ...prev,
             skills: {
@@ -280,24 +144,18 @@ export default function ResumeBuilder() {
         }));
     };
 
-    const startEditing = (id, currentName) => {
-        setEditingId(id);
-        setEditingName(currentName);
-    };
-
-    const saveEdit = (id) => {
-        updateSkillCategory(id, 'name', editingName);
-        setEditingId(null);
-        setEditingName('');
-    };
-
-    const cancelEdit = () => {
-        setEditingId(null);
-        setEditingName('');
+    const deleteSkillCategory = (id: string) => {
+        setResumeData(prev => ({
+            ...prev,
+            skills: {
+                ...prev.skills,
+                categories: prev.skills.categories.filter(cat => cat.id !== id)
+            }
+        }));
     };
 
     const addProject = () => {
-        const newProject = {
+        const newProject: Project = {
             id: Date.now().toString(),
             title: '',
             technologies: '',
@@ -310,11 +168,52 @@ export default function ResumeBuilder() {
         }));
     };
 
-    const updateProject = (id: string, field: keyof Project, value: any) => {
+    const updateProject = (id: string, field: keyof Project, value: string | string[]) => {
         setResumeData(prev => ({
             ...prev,
-            projects: prev.projects.map(project =>
-                project.id === id ? { ...project, [field]: value } : project
+            projects: prev.projects.map(proj =>
+                proj.id === id ? { ...proj, [field]: value } : proj
+            )
+        }));
+    };
+
+    const addProjectDescription = (projectId: string) => {
+        setResumeData(prev => ({
+            ...prev,
+            projects: prev.projects.map(proj =>
+                proj.id === projectId
+                    ? { ...proj, description: [...proj.description, ''] }
+                    : proj
+            )
+        }));
+    };
+
+    const updateProjectDescription = (projectId: string, index: number, value: string) => {
+        setResumeData(prev => ({
+            ...prev,
+            projects: prev.projects.map(proj =>
+                proj.id === projectId
+                    ? {
+                        ...proj,
+                        description: proj.description.map((desc, i) =>
+                            i === index ? value : desc
+                        )
+                    }
+                    : proj
+            )
+        }));
+    };
+
+    const deleteProjectDescription = (projectId: string, index: number) => {
+        setResumeData(prev => ({
+            ...prev,
+            projects: prev.projects.map(proj =>
+                proj.id === projectId
+                    ? {
+                        ...proj,
+                        description: proj.description.filter((_, i) => i !== index)
+                    }
+                    : proj
             )
         }));
     };
@@ -322,50 +221,72 @@ export default function ResumeBuilder() {
     const deleteProject = (id: string) => {
         setResumeData(prev => ({
             ...prev,
-            projects: prev.projects.filter(project => project.id !== id)
+            projects: prev.projects.filter(proj => proj.id !== id)
         }));
-    };
-
-    const addProjectDescription = (projectId: string) => {
-        updateProject(projectId, 'description', [...resumeData.projects.find(p => p.id === projectId)?.description || [], '']);
-    };
-
-    const updateProjectDescription = (projectId: string, index: number, value: string) => {
-        const project = resumeData.projects.find(p => p.id === projectId);
-        if (project) {
-            const newDescription = [...project.description];
-            newDescription[index] = value;
-            updateProject(projectId, 'description', newDescription);
-        }
-    };
-
-    const removeProjectDescription = (projectId: string, index: number) => {
-        const project = resumeData.projects.find(p => p.id === projectId);
-        if (project && project.description.length > 1) {
-            const newDescription = project.description.filter((_, i) => i !== index);
-            updateProject(projectId, 'description', newDescription);
-        }
     };
 
     const addExperience = () => {
         const newExperience: Experience = {
             id: Date.now().toString(),
-            title: '',
+            position: '',
             company: '',
-            duration: '',
-            description: ['']
+            location: '',
+            startDate: '',
+            endDate: '',
+            achievements: ['']
         };
         setResumeData(prev => ({
             ...prev,
-            experiences: [...prev.experiences, newExperience]
+            experience: [...prev.experience, newExperience]
         }));
     };
 
-    const updateExperience = (id: string, field: keyof Experience, value: any) => {
+    const updateExperience = (id: string, field: keyof Experience, value: string | string[]) => {
         setResumeData(prev => ({
             ...prev,
-            experiences: prev.experiences.map(exp =>
+            experience: prev.experience.map(exp =>
                 exp.id === id ? { ...exp, [field]: value } : exp
+            )
+        }));
+    };
+
+    const addExperienceAchievement = (expId: string) => {
+        setResumeData(prev => ({
+            ...prev,
+            experience: prev.experience.map(exp =>
+                exp.id === expId
+                    ? { ...exp, achievements: [...exp.achievements, ''] }
+                    : exp
+            )
+        }));
+    };
+
+    const updateExperienceAchievement = (expId: string, index: number, value: string) => {
+        setResumeData(prev => ({
+            ...prev,
+            experience: prev.experience.map(exp =>
+                exp.id === expId
+                    ? {
+                        ...exp,
+                        achievements: exp.achievements.map((ach, i) =>
+                            i === index ? value : ach
+                        )
+                    }
+                    : exp
+            )
+        }));
+    };
+
+    const deleteExperienceAchievement = (expId: string, index: number) => {
+        setResumeData(prev => ({
+            ...prev,
+            experience: prev.experience.map(exp =>
+                exp.id === expId
+                    ? {
+                        ...exp,
+                        achievements: exp.achievements.filter((_, i) => i !== index)
+                    }
+                    : exp
             )
         }));
     };
@@ -373,29 +294,8 @@ export default function ResumeBuilder() {
     const deleteExperience = (id: string) => {
         setResumeData(prev => ({
             ...prev,
-            experiences: prev.experiences.filter(exp => exp.id !== id)
+            experience: prev.experience.filter(exp => exp.id !== id)
         }));
-    };
-
-    const addExperienceDescription = (experienceId: string) => {
-        updateExperience(experienceId, 'description', [...resumeData.experiences.find(p => p.id === experienceId)?.description || [], '']);
-    };
-
-    const updateExperienceDescription = (experienceId: string, index: number, value: string) => {
-        const experience = resumeData.experiences.find(p => p.id === experienceId);
-        if (experience) {
-            const newDescription = [...experience.description];
-            newDescription[index] = value;
-            updateExperience(experienceId, 'description', newDescription);
-        }
-    };
-
-    const removeExperienceDescription = (experienceId: string, index: number) => {
-        const experience = resumeData.experiences.find(p => p.id === experienceId);
-        if (experience && experience.description.length > 1) {
-            const newDescription = experience.description.filter((_, i) => i !== index);
-            updateExperience(experienceId, 'description', newDescription);
-        }
     };
 
     const addEducation = () => {
@@ -404,7 +304,8 @@ export default function ResumeBuilder() {
             institution: '',
             degree: '',
             field: '',
-            graduationDate: '',
+            startDate: '',
+            endDate: '',
             gpa: ''
         };
         setResumeData(prev => ({
@@ -430,7 +331,7 @@ export default function ResumeBuilder() {
     };
 
     const addCertification = () => {
-        const newCertification = {
+        const newCert: Certification = {
             id: Date.now().toString(),
             name: '',
             issuer: '',
@@ -440,7 +341,7 @@ export default function ResumeBuilder() {
         };
         setResumeData(prev => ({
             ...prev,
-            certifications: [...prev.certifications, newCertification]
+            certifications: [...prev.certifications, newCert]
         }));
     };
 
@@ -460,71 +361,138 @@ export default function ResumeBuilder() {
         }));
     };
 
-    const updateLayoutSettings = (field: string, value: any) => {
-        if (field.includes('.')) {
-            const [parent, child] = field.split('.');
-            setLayoutSettings(prev => ({
-                ...prev,
-                [parent]: { ...(prev[parent as keyof LayoutSettings] as object), [child]: value }
-            }));
-        } else {
-            setLayoutSettings(prev => ({ ...prev, [field]: value }));
-        }
+    const updateLayoutSettings = (field: keyof LayoutSettings, value: any) => {
+        setLayoutSettings(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
-    const roundToOneDecimal = (num: number): number => {
-        return Math.round(num * 10) / 10;
-    };
-
-    const updateMargin = (side: 'left' | 'right' | 'top' | 'bottom', increment: number) => {
+    const updateMargin = (side: keyof LayoutSettings['margins'], value: number) => {
         setLayoutSettings(prev => ({
             ...prev,
             margins: {
                 ...prev.margins,
-                [side]: Math.max(0.1, Math.min(2, roundToOneDecimal(prev.margins[side] + increment)))
+                [side]: value
             }
         }));
     };
 
+    const validateResumeData = () => {
+        if (!warningConfig.enabled) {
+            setWarnings([]);
+            return;
+        }
+
+        const newWarnings: string[] = [];
+
+        if (resumeData.projects.length < warningConfig.thresholds.minProjects) {
+            newWarnings.push(`Add at least ${warningConfig.thresholds.minProjects} projects to strengthen your resume`);
+        }
+
+        if (resumeData.skills.categories.length < warningConfig.thresholds.minSkillCategories) {
+            newWarnings.push(`Add more skill categories (minimum: ${warningConfig.thresholds.minSkillCategories})`);
+        }
+
+        if (resumeData.education.length < warningConfig.thresholds.minEducation) {
+            newWarnings.push(`Add your education details (minimum: ${warningConfig.thresholds.minEducation})`);
+        }
+
+        if (!resumeData.personalInfo.email || !resumeData.personalInfo.phone) {
+            newWarnings.push('Ensure contact information is complete');
+        }
+
+        if (!resumeData.summary || resumeData.summary.length < 50) {
+            newWarnings.push('Add a compelling professional summary (at least 50 characters)');
+        }
+
+        newWarnings.push(`Try Keeping your resume to 1 page for optimal recruiter engagement.`);
+
+        newWarnings.push(`If you feel the content won't fit in 1 page, consider decreasing the Line Height in Layout Tab.`);
+
+        setWarnings(newWarnings);
+    };
+
+    const resetAllData = () => {
+        if (window.confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+            setResumeData(getDefaultResumeData());
+            setLayoutSettings(getDefaultLayoutSettings());
+            localStorage.removeItem(STORAGE_KEY_RESUME);
+            localStorage.removeItem(STORAGE_KEY_LAYOUT);
+            localStorage.removeItem(STORAGE_KEY_LAST_SAVED);
+            setLastSaved('');
+        }
+    };
+
     const handleDownload = () => {
-        const resumeEl = document.querySelector("#resume-preview");
+        const resumeEl = document.querySelector(".resume-content");
         if (!resumeEl) return;
 
-        // Keep your existing print styles if you have them; this is just a placeholder hook.
         const printStyle = document.createElement("style");
         printStyle.textContent = `
-            @media print {
-            body * { visibility: hidden; }
-            #resume-preview, #resume-preview * { visibility: visible; }
-            #resume-preview { position: absolute; left: 0; top: 0; width: 100% !important; }
-
-            .resume-page:nth-of-type(n+2) {
-                display: none !important;
+        @media print {
+            /* Hide all page content */
+            body * { 
+                visibility: hidden !important;
             }
-
-            .resume-page {
-            page-break-after: auto !important;
-            break-after: auto !important;
+            
+            /* Show only resume content */
+            .resume-content, 
+            .resume-content * { 
+                visibility: visible !important;
             }
-
-            .resume-page:last-child {
-                page-break-after: auto;
+            
+            /* Position and size */
+            .resume-content { 
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
             }
-            .resume-section {
+            
+            /* Force white background everywhere */
+            * {
+                background-color: white !important;
+                background: white !important;
+            }
+            
+            /* Remove any dark mode or colored backgrounds */
+            body,
+            html,
+            div,
+            .bg-white,
+            .bg-black,
+            .dark\\:bg-black,
+            .dark\\:bg-gray-900 {
+                background-color: white !important;
+                background: white !important;
+            }
+            
+            /* Prevent page breaks within sections */
+            .resume-content > div {
                 page-break-inside: avoid;
             }
-            .resume-item {
-                page-break-inside: avoid;
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
             }
+            
+            /* Force single page by hiding overflow */
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
             }
-        `;
+        }
+    `;
         document.head.appendChild(printStyle);
 
-        // Different hint for mobile vs desktop (many mobile UIs don't expose page range)
         const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         const msg = isMobile
-            ? `Note: On mobile, the print dialog may not let you pick a page range.\nIf you see extra blank pages, save as PDF and share only page 1.`
-            : `Tip: The number of pages while printing pdf may have some blank pages too, navigate "Pages" -> "Custom" and set 1–1 to print only the first page.`;
+            ? `Note: On mobile, the print dialog may not show page range options.\nIf you see extra blank pages, save as PDF first, then share only page 1.`
+            : `Tip: In the print dialog:\n1. Go to "Pages"\n2. Select "Custom" and enter "1""\n3. This will print only the first page`;
 
         const proceed = window.confirm(`${msg}\n\nOpen the print dialog now?`);
         if (!proceed) {
@@ -543,29 +511,23 @@ export default function ResumeBuilder() {
         window.print();
     };
 
-    const [showWarning, setShowWarning] = useState(false);
+    useEffect(() => {
+        saveToLocalStorage(STORAGE_KEY_RESUME, resumeData);
+        saveToLocalStorage(STORAGE_KEY_LAYOUT, layoutSettings);
+        const now = new Date().toLocaleString();
+        setLastSaved(now);
+        saveToLocalStorage(STORAGE_KEY_LAST_SAVED, now);
+    }, [resumeData, layoutSettings]);
 
     useEffect(() => {
-        const checkContentHeight = () => {
-            const resumePageEl = document.querySelector(".resume-page");
-            if (!resumePageEl) return;
+        validateResumeData();
+    }, [resumeData, warningConfig]);
 
-            const contentHeight = resumePageEl.scrollHeight;
-            const pageHeightPx =
-                layoutSettings.pageSize === "A4" ? 11.7 * 96 : 11 * 96;
+    useEffect(() => {
+        const saved = loadFromLocalStorage(STORAGE_KEY_LAST_SAVED);
+        if (saved) setLastSaved(saved);
+    }, []);
 
-            if (contentHeight > pageHeightPx) {
-                setShowWarning(true);
-            } else {
-                setShowWarning(false);
-            }
-        };
-
-        checkContentHeight();
-        window.addEventListener("resize", checkContentHeight);
-
-        return () => window.removeEventListener("resize", checkContentHeight);
-    }, [resumeData, layoutSettings]);
 
     const sectionIcons = {
         personal: User,
@@ -577,1284 +539,1430 @@ export default function ResumeBuilder() {
         certifications: Award
     };
 
-    const renderEditorContent = () => {
-        switch (activeSection) {
-            case 'personal':
-                return (
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">Personal Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">First Name</label>
-                                <input
-                                    type="text"
-                                    value={resumeData.personalInfo.firstName}
-                                    onChange={(e) => updatePersonalInfo('firstName', e.target.value)}
-                                    className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Last Name</label>
-                                <input
-                                    type="text"
-                                    value={resumeData.personalInfo.lastName}
-                                    onChange={(e) => updatePersonalInfo('lastName', e.target.value)}
-                                    className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Target Job Title</label>
-                            <input
-                                type="text"
-                                value={resumeData.personalInfo.targetJobTitle}
-                                onChange={(e) => updatePersonalInfo('targetJobTitle', e.target.value)}
-                                className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                placeholder="e.g., Frontend Developer, Data Analyst"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                            <input
-                                type="email"
-                                value={resumeData.personalInfo.email}
-                                onChange={(e) => updatePersonalInfo('email', e.target.value)}
-                                className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Phone Number</label>
-                            <input
-                                type="text"
-                                value={resumeData.personalInfo.phone}
-                                onChange={(e) => updatePersonalInfo('phone', e.target.value)}
-                                className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                placeholder="Your phone number"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Location</label>
-                            <input
-                                type="text"
-                                value={resumeData.personalInfo.location}
-                                onChange={(e) => updatePersonalInfo('location', e.target.value)}
-                                className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                placeholder="City, State"
-                            />
-                        </div>
+    const renderPersonalInfoEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Personal Information
+            </h3>
 
-                        {/* Professional Links Section */}
-                        <div className="mt-6">
-                            <h4 className="text-md font-semibold text-gray-800 dark:text-gray-300 mb-3">Professional Links</h4>
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">LinkedIn URL</label>
-                                    <input
-                                        type="url"
-                                        value={resumeData.personalInfo.linkedinUrl || ''}
-                                        onChange={(e) => updatePersonalInfo('linkedinUrl', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="https://linkedin.com/in/yoursummary"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">GitHub URL</label>
-                                    <input
-                                        type="url"
-                                        value={resumeData.personalInfo.githubUrl || ''}
-                                        onChange={(e) => updatePersonalInfo('githubUrl', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="https://github.com/yourusername"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Portfolio URL</label>
-                                    <input
-                                        type="url"
-                                        value={resumeData.personalInfo.portfolioUrl || ''}
-                                        onChange={(e) => updatePersonalInfo('portfolioUrl', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="https://yourwebsite.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">LeetCode URL</label>
-                                    <input
-                                        type="url"
-                                        value={resumeData.personalInfo.leetcodeUrl || ''}
-                                        onChange={(e) => updatePersonalInfo('leetcodeUrl', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="https://leetcode.com/yourusername"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
+            <div className="grid grid-cols-1 gap-4">
+                <div>
+                    <label className="block text-sm font-medium mb-2">First Name <span className='text-red-600'>*</span></label>
+                    <input
+                        type="text"
+                        value={resumeData.personalInfo.firstName}
+                        onChange={(e) => updatePersonalInfo('firstName', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="John"
+                    />
+                </div>
 
-            case 'summary':
-                return (
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">Professional Summary</h3>
-                        <div>
-                            <label className="block text-sm font-medium text-center text-gray-700 dark:text-gray-400 mb-1">Summary</label>
-                            <textarea
-                                value={resumeData.summary}
-                                onChange={(e) => setResumeData(prev => ({ ...prev, summary: e.target.value }))}
-                                className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                rows={4}
-                                placeholder="Brief 2-3 lines summary highlighting your key skills, experience level, and career focus..."
-                            />
-                        </div>
-                    </div>
-                );
+                <div>
+                    <label className="block text-sm font-medium mb-2">Last Name <span className='text-red-600'>*</span></label>
+                    <input
+                        type="text"
+                        value={resumeData.personalInfo.lastName}
+                        onChange={(e) => updatePersonalInfo('lastName', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="Doe"
+                    />
+                </div>
 
-            case 'skills':
-                return (
-                    <div className="space-y-4">
-                        <div className="flex flex-col items-center justify-between mb-6">
-                            <h3 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Technical Skills</h3>
+                <div>
+                    <label className="block text-sm font-medium mb-2">Email <span className='text-red-600'>*</span></label>
+                    <input
+                        type="email"
+                        value={resumeData.personalInfo.email}
+                        onChange={(e) => updatePersonalInfo('email', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="john.doe@example.com"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Phone <span className='text-red-600'>*</span></label>
+                    <input
+                        type="tel"
+                        value={resumeData.personalInfo.phone}
+                        onChange={(e) => updatePersonalInfo('phone', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="+1 234 567 8900"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Location <span className='text-red-600'>*</span></label>
+                    <input
+                        type="text"
+                        value={resumeData.personalInfo.location}
+                        onChange={(e) => updatePersonalInfo('location', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="San Francisco, CA"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Target Job Title <span className='text-red-600'>*</span></label>
+                    <input
+                        type="text"
+                        value={resumeData.personalInfo.targetJobTitle}
+                        onChange={(e) => updatePersonalInfo('targetJobTitle', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="Software Engineer"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">LinkedIn URL</label>
+                    <input
+                        type="url"
+                        value={resumeData.personalInfo.linkedinUrl}
+                        onChange={(e) => updatePersonalInfo('linkedinUrl', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="https://linkedin.com/in/johndoe"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">GitHub URL</label>
+                    <input
+                        type="url"
+                        value={resumeData.personalInfo.githubUrl}
+                        onChange={(e) => updatePersonalInfo('githubUrl', e.target.value)}
+                        className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                        placeholder="https://github.com/johndoe"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderSummaryEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Professional Summary
+            </h3>
+
+            <div>
+                <label className="block text-sm font-medium mb-2">Summary <span className='text-red-600'>*</span></label>
+                <textarea
+                    value={resumeData.summary}
+                    onChange={(e) => updateSummary(e.target.value)}
+                    rows={12}
+                    className="w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                    placeholder="Write a compelling professional summary highlighting your key skills, experience, and career objectives..."
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                    {resumeData.summary.length} characters
+                </p>
+            </div>
+        </div>
+    );
+
+    const renderSkillsEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Technical Skills
+            </h3>
+
+            <button
+                onClick={addSkillCategory}
+                className="w-full px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+                <Plus size={16} />
+                Add Skill Category
+            </button>
+
+            <div className="space-y-4">
+                {resumeData.skills.categories.map((category) => (
+                    <div key={category.id} className="p-4 border border-gray-300 dark:border-gray-700 rounded-lg space-y-3">
+                        <div className="flex justify-end">
                             <button
-                                onClick={addSkillCategory}
-                                className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors duration-200"
+                                onClick={() => deleteSkillCategory(category.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
                             >
-                                <Plus size={16} />
-                                Add Category
+                                <Trash2 size={16} />
                             </button>
                         </div>
 
-                        <div className="space-y-4">
-                            {(resumeData.skills.categories || []).map((category) => (
-                                <div key={category.id} className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        {editingId === category.id ? (
-                                            <div className="flex items-center gap-2 flex-1">
-                                                <input
-                                                    type="text"
-                                                    value={editingName}
-                                                    onChange={(e) => setEditingName(e.target.value)}
-                                                    className="flex-1 p-1 text-sm border rounded focus:ring-2 border-resume-primary focus:ring-resume-primary focus:border-resume-primary dark:border-resume-secondary dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none dark:bg-gray-700"
-                                                    onKeyPress={(e) => e.key === 'Enter' && saveEdit(category.id)}
-                                                />
-                                                <button
-                                                    onClick={() => saveEdit(category.id)}
-                                                    className="p-1 text-green-600 hover:text-green-700"
-                                                >
-                                                    <Check size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={cancelEdit}
-                                                    className="p-1 text-red-600 hover:text-red-700"
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 flex-1">
-                                                    {category.name}
-                                                </label>
-                                                <button
-                                                    onClick={() => startEditing(category.id, category.name)}
-                                                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                >
-                                                    <Edit3 size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => removeSkillCategory(category.id)}
-                                                    className="p-1 text-red-500 hover:text-red-700"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Category Name</label>
+                            <input
+                                type="text"
+                                value={category.name}
+                                onChange={(e) => updateSkillCategory(category.id, 'name', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="e.g., Languages"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Skills (comma-separated)</label>
+                            <input
+                                type="text"
+                                value={category.value}
+                                onChange={(e) => updateSkillCategory(category.id, 'value', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="e.g., JavaScript, Python, Java"
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderProjectsEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Projects
+            </h3>
+
+            <button
+                onClick={addProject}
+                className="w-full px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+                <Plus size={16} />
+                Add Project
+            </button>
+
+            <div className="space-y-6">
+                {resumeData.projects.map((project) => (
+                    <div key={project.id} className="p-4 border border-gray-300 dark:border-gray-700 rounded-lg space-y-3">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => deleteProject(project.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Project Title <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={project.title}
+                                onChange={(e) => updateProject(project.id, 'title', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="Project Name"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Technologies Used <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={project.technologies}
+                                onChange={(e) => updateProject(project.id, 'technologies', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="React, Node.js, MongoDB"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Project Link</label>
+                            <input
+                                type="url"
+                                value={project.link}
+                                onChange={(e) => updateProject(project.id, 'link', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="https://github.com/username/project"
+                            />
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-medium">Description Points</label>
+                                <button
+                                    onClick={() => addProjectDescription(project.id)}
+                                    className="text-resume-primary hover:text-resume-primary/80 dark:text-resume-secondary dark:hover:text-resume-secondary/80 flex items-center text-xs"
+                                >
+                                    <Plus size={14} />
+                                    Add Point
+                                </button>
+                            </div>
+
+                            <div className="space-y-2">
+                                {project.description.map((desc, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={desc}
+                                            onChange={(e) => updateProjectDescription(project.id, index, e.target.value)}
+                                            className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                            placeholder="Describe what you accomplished..."
+                                        />
+                                        {project.description.length > 1 && (
+                                            <button
+                                                onClick={() => deleteProjectDescription(project.id, index)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         )}
                                     </div>
-                                    <input
-                                        type="text"
-                                        value={category.value}
-                                        onChange={(e) => updateSkillCategory(category.id, 'value', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary focus:ring-resume-primary focus:border-resume-primary dark:border-resume-secondary dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Enter skills separated by commas..."
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                );
-
-            case 'projects':
-                return (
-                    <div className="space-y-4">
-                        <div className="flex flex-col justify-between items-center">
-                            <h3 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Projects</h3>
-                            <button
-                                onClick={addProject}
-                                className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                            >
-                                <Plus size={16} /> Add Project
-                            </button>
-                        </div>
-                        {resumeData.projects.map((project, index) => (
-                            <div key={project.id} className="border border-gray-200 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="font-medium text-gray-800 dark:text-gray-400">Project {index + 1}</h4>
-                                    <button
-                                        onClick={() => deleteProject(project.id)}
-                                        className="text-red-500 hover:text-red-700"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                                <div className="space-y-3">
-                                    <input
-                                        type="text"
-                                        value={project.title}
-                                        onChange={(e) => updateProject(project.id, 'title', e.target.value)}
-                                        className="w-full p-2 text-sm dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Project Title"
-                                    />
-                                    <input
-                                        type="url"
-                                        value={project.link || ''}
-                                        onChange={(e) => updateProject(project.id, 'link', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Project Link (optional) - e.g., https://github.com/username/project"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={project.technologies}
-                                        onChange={(e) => updateProject(project.id, 'technologies', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Tech Stack used (e.g., React, Node.js, MongoDB)"
-                                    />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Description Points</label>
-                                        {project.description.map((desc, descIndex) => (
-                                            <div key={descIndex} className="flex gap-2 mb-2">
-                                                <textarea
-                                                    value={desc}
-                                                    onChange={(e) => updateProjectDescription(project.id, descIndex, e.target.value)}
-                                                    className="flex-1 p-2 text-xs dark:bg-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    placeholder="Description point"
-                                                    rows={3}
-                                                />
-                                                {project.description.length > 1 && (
-                                                    <button
-                                                        onClick={() => removeProjectDescription(project.id, descIndex)}
-                                                        className="text-red-500 hover:text-red-700 px-2"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                        <button
-                                            onClick={() => addProjectDescription(project.id)}
-                                            className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
-                                        >
-                                            <Plus size={14} /> Add Description Point
-                                        </button>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                );
-
-            case 'experience':
-                return (
-                    <div className="space-y-4">
-                        <div className="flex flex-col justify-between items-center">
-                            <h3 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Work Experience</h3>
-                            <button
-                                onClick={addExperience}
-                                className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                            >
-                                <Plus size={16} /> Add Experience
-                            </button>
                         </div>
-                        {resumeData.experiences.map((exp, index) => (
-                            <div key={exp.id} className="border border-gray-200 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="font-medium text-gray-800 dark:text-gray-400">Experience {index + 1}</h4>
-                                    <button
-                                        onClick={() => deleteExperience(exp.id)}
-                                        className="text-red-500 hover:text-red-700"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                                <div className="space-y-3">
-                                    <input
-                                        type="text"
-                                        value={exp.title}
-                                        onChange={(e) => updateExperience(exp.id, 'title', e.target.value)}
-                                        className="w-full p-2 dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Job Title"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={exp.company}
-                                        onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Company Name"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={exp.duration}
-                                        onChange={(e) => updateExperience(exp.id, 'duration', e.target.value)}
-                                        className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Duration (e.g., Jun 2024 - Aug 2024)"
-                                    />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Description Points</label>
-                                        {exp.description.map((desc, descIndex) => (
-                                            <div key={descIndex} className="flex gap-2 mb-2">
-                                                <textarea
-                                                    value={desc}
-                                                    onChange={(e) => updateExperienceDescription(exp.id, descIndex, e.target.value)}
-                                                    className="flex-1 p-2 text-xs dark:bg-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    placeholder="Description point"
-                                                    rows={3}
-                                                />
-                                                {exp.description.length > 1 && (
-                                                    <button
-                                                        onClick={() => removeExperienceDescription(exp.id, descIndex)}
-                                                        className="text-red-500 hover:text-red-700 px-2"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                        <button
-                                            onClick={() => addExperienceDescription(exp.id)}
-                                            className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
-                                        >
-                                            <Plus size={14} /> Add Description Point
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
                     </div>
-                );
+                ))}
+            </div>
+        </div>
+    );
 
-            case 'education':
-                return (
-                    <div className="space-y-4">
-                        <div className="flex flex-col justify-between items-center">
-                            <h3 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Education</h3>
-                            <button
-                                onClick={addEducation}
-                                className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                            >
-                                <Plus size={16} /> Add Education
-                            </button>
-                        </div>
-                        {resumeData.education.map((edu, index) => (
-                            <div key={edu.id} className="border border-gray-200 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="font-medium text-gray-800 dark:text-gray-400">Education {index + 1}</h4>
-                                    <button
-                                        onClick={() => deleteEducation(edu.id)}
-                                        className="text-red-500 hover:text-red-700"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                                <div className="space-y-3">
-                                    <input
-                                        type="text"
-                                        value={edu.institution}
-                                        onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
-                                        className="w-full p-2 dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Institution Name"
-                                    />
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <input
-                                            type="text"
-                                            value={edu.degree}
-                                            onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
-                                            className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                            placeholder="Degree (e.g., Bachelor of Technology)"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={edu.field}
-                                            onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
-                                            className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                            placeholder="Field of Study"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <input
-                                            type="text"
-                                            value={edu.graduationDate}
-                                            onChange={(e) => updateEducation(edu.id, 'graduationDate', e.target.value)}
-                                            className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                            placeholder="Graduation Date"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={edu.gpa || ''}
-                                            onChange={(e) => updateEducation(edu.id, 'gpa', e.target.value)}
-                                            className="w-full p-2 text-xs dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                            placeholder="GPA (optional)"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                );
+    const renderExperienceEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Work Experience
+            </h3>
 
-            case 'certifications':
-                return (
-                    <div className="space-y-4">
-                        <div className="flex flex-col justify-between items-center">
-                            <h3 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Certifications / Achievements</h3>
-                            <button
-                                onClick={addCertification}
-                                className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                            >
-                                <Plus size={16} /> Add Certifications / Achievements
-                            </button>
-                        </div>
-                        {resumeData.certifications.map((cert, index) => (
-                            <div key={cert.id} className="border border-gray-200 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="font-medium text-gray-800 dark:text-gray-400">Certification / Achievements {index + 1}</h4>
-                                    <button
-                                        onClick={() => deleteCertification(cert.id)}
-                                        className="text-red-500 hover:text-red-700"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                                <div className="space-y-3">
-                                    <input
-                                        type="text"
-                                        value={cert.name}
-                                        onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
-                                        className="w-full p-2 text-sm dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Certification / Achievements Name"
-                                    />
+            <button
+                onClick={addExperience}
+                className="w-full px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+                <Plus size={16} />
+                Add Experience
+            </button>
 
-                                    <input
-                                        type="url"
-                                        value={cert.link || ''}
-                                        onChange={(e) => updateCertification(cert.id, 'link', e.target.value)}
-                                        className="w-full p-2 text-sm dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Certification Link (optional) - e.g., https://credential-url.com"
-                                    />
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <input
-                                            type="text"
-                                            value={cert.issuer}
-                                            onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
-                                            className="w-full p-2 text-sm dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                            placeholder="Issuing Organization"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={cert.date}
-                                            onChange={(e) => updateCertification(cert.id, 'date', e.target.value)}
-                                            className="w-full p-2 text-sm dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                            placeholder="Date"
-                                        />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={cert.credentialId || ''}
-                                        onChange={(e) => updateCertification(cert.id, 'credentialId', e.target.value)}
-                                        className="w-full p-2 text-sm dark:bg-gray-700 border rounded-md focus:ring-2 border-resume-primary  focus:ring-resume-primary  focus:border-resume-primary  dark:border-resume-secondary  dark:focus:ring-resume-secondary dark:focus:border-resume-secondary focus:outline-none"
-                                        placeholder="Credential ID (optional)"
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                );
-
-            default:
-                return null;
-        }
-    };
-
-    const renderLayoutSettings = () => {
-        return (
             <div className="space-y-6">
-                <h3 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Layout & Style</h3>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                            Font Size
-                        </label>
-                        <div className="flex items-center gap-3">
+                {resumeData.experience.map((exp) => (
+                    <div key={exp.id} className="p-4 border border-gray-300 dark:border-gray-700 rounded-lg space-y-3">
+                        <div className="flex justify-end">
                             <button
-                                onClick={() =>
-                                    updateLayoutSettings("fontSize", Math.max(8, layoutSettings.fontSize - 0.5))
-                                }
-                                className="h-8 w-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                                onClick={() => deleteExperience(exp.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
                             >
-                                -
-                            </button>
-
-                            <span className="text-sm">{layoutSettings.fontSize}</span>
-
-                            <button
-                                onClick={() =>
-                                    updateLayoutSettings("fontSize", Math.min(16, layoutSettings.fontSize + 0.5))
-                                }
-                                className="h-8 w-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                            >
-                                +
-                            </button>
-
-                            <button
-                                onClick={() => updateLayoutSettings("fontSize", 9.5)}
-                                className="border border-blue-400 font-semibold rounded-md px-3 py-1 text-xs text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-800/45 transition-colors duration-200 ml-4"
-                            >
-                                Reset
+                                <Trash2 size={16} />
                             </button>
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Font Family</label>
-                        <select
-                            value={layoutSettings.fontFamily || 'Arial'}
-                            onChange={(e) => updateLayoutSettings('fontFamily', e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="Arial">Arial</option>
-                            <option value="Calibri">Calibri</option>
-                            <option value="Cambria">Cambria</option>
-                            <option value="Garamond">Garamond</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Helvetica">Helvetica</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Position <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={exp.position}
+                                onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="Software Engineer"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Line Height</label>
-                        <select
-                            value={layoutSettings.lineHeight}
-                            onChange={(e) => updateLayoutSettings('lineHeight', e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="1.15">1.15 Condensed</option>
-                            <option value="1.3">1.3 Normal</option>
-                            <option value="1.5">1.5 Relaxed</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Location <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={exp.location}
+                                onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="Delhi, India / Remote"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Page Size</label>
-                        <select
-                            value={layoutSettings.pageSize}
-                            onChange={(e) => updateLayoutSettings('pageSize', e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="A4">A4 (210 x 297 mm)</option>
-                            <option value="Letter">Letter (8.5 x 11 in)</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Company <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={exp.company}
+                                onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="Company Name"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Margins (in inches)</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            {(['left', 'right', 'top', 'bottom'] as const).map(side => (
-                                <div key={side} className="flex items-center gap-2">
-                                    <label className="text-xs text-gray-700 dark:text-gray-400 w-12 capitalize">{side}</label>
-                                    <div className="flex items-center gap-1">
-                                        <button
-                                            onClick={() => updateMargin(side, -0.1)}
-                                            className="h-6 w-6 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                                        >
-                                            -
-                                        </button>
-                                        <span className="text-xs w-8 text-center">{layoutSettings.margins[side].toFixed(1)}</span>
-                                        <button
-                                            onClick={() => updateMargin(side, 0.1)}
-                                            className="h-6 w-6 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                                        >
-                                            +
-                                        </button>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Start Date <span className='text-red-600'>*</span></label>
+                                <input
+                                    type="text"
+                                    value={exp.startDate}
+                                    onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="Jan 2023"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">End Date <span className='text-red-600'>*</span></label>
+                                <input
+                                    type="text"
+                                    value={exp.endDate}
+                                    onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="Present"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-medium">Achievements</label>
+                                <button
+                                    onClick={() => addExperienceAchievement(exp.id)}
+                                    className="text-resume-primary hover:text-resume-primary/80 dark:text-resume-secondary dark:hover:text-resume-secondary/80 flex items-center text-xs"
+                                >
+                                    <Plus size={14} />
+                                    Add Achievement
+                                </button>
+                            </div>
+
+                            <div className="space-y-2">
+                                {exp.achievements.map((achievement, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={achievement}
+                                            onChange={(e) => updateExperienceAchievement(exp.id, index, e.target.value)}
+                                            className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                            placeholder="Describe your achievement..."
+                                        />
+                                        {exp.achievements.length > 1 && (
+                                            <button
+                                                onClick={() => deleteExperienceAchievement(exp.id, index)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderEducationEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Education
+            </h3>
+
+            <button
+                onClick={addEducation}
+                className="w-full px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+                <Plus size={16} />
+                Add Education
+            </button>
+
+            <div className="space-y-6">
+                {resumeData.education.map((edu) => (
+                    <div key={edu.id} className="p-4 border border-gray-300 dark:border-gray-700 rounded-lg space-y-3">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => deleteEducation(edu.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Institution <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={edu.institution}
+                                onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="University Name"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Degree <span className='text-red-600'>*</span></label>
+                                <input
+                                    type="text"
+                                    value={edu.degree}
+                                    onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="B.Tech"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Field of Study <span className='text-red-600'>*</span></label>
+                                <input
+                                    type="text"
+                                    value={edu.field}
+                                    onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="Computer Science"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Start Date</label>
+                                <input
+                                    type="text"
+                                    value={edu.startDate}
+                                    onChange={(e) => updateEducation(edu.id, 'startDate', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="2023"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">End Date <span className='text-red-600'>*</span></label>
+                                <input
+                                    type="text"
+                                    value={edu.endDate}
+                                    onChange={(e) => updateEducation(edu.id, 'endDate', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="2027"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">GPA <span className='text-gray-700 dark:text-gray-400 text-xs'>(Optional)</span></label>
+                                <input
+                                    type="number"
+                                    value={edu.gpa}
+                                    onChange={(e) => updateEducation(edu.id, 'gpa', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="8.5/10.0"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderCertificationsEditor = () => (
+        <div className="space-y-4">
+            <h3 className="text-xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Certifications & Achievements
+            </h3>
+
+            <button
+                onClick={addCertification}
+                className="w-full px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+                <Plus size={16} />
+                Add Certification
+            </button>
+
+            <div className="space-y-6">
+                {resumeData.certifications.map((cert) => (
+                    <div key={cert.id} className="p-4 border border-gray-300 dark:border-gray-700 rounded-lg space-y-3">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => deleteCertification(cert.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Certification Name <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={cert.name}
+                                onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="AWS Certified Developer"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Issuing Organization <span className='text-red-600'>*</span></label>
+                            <input
+                                type="text"
+                                value={cert.issuer}
+                                onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="Amazon Web Services"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Date Issued <span className='text-red-600'>*</span></label>
+                                <input
+                                    type="text"
+                                    value={cert.date}
+                                    onChange={(e) => updateCertification(cert.id, 'date', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="Jan 2024"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Credential ID</label>
+                                <input
+                                    type="text"
+                                    value={cert.credentialId}
+                                    onChange={(e) => updateCertification(cert.id, 'credentialId', e.target.value)}
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                    placeholder="ABC123XYZ"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Credential URL</label>
+                            <input
+                                type="url"
+                                value={cert.link}
+                                onChange={(e) => updateCertification(cert.id, 'link', e.target.value)}
+                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                   focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
+                                   focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
+                                   outline-none focus:outline-none transition-all duration-150"
+                                placeholder="https://credentials.example.com/..."
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderLayoutSettings = () => (
+        <div className="space-y-6 max-w-2xl mx-auto">
+            <h3 className="text-2xl font-medium text-center text-resume-primary dark:text-resume-secondary mb-6">
+                Layout Settings
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label className="block text-sm font-medium mb-2">Font Size (px)</label>
+                    <input
+                        type="number"
+                        value={layoutSettings.fontSize}
+                        onChange={(e) => updateLayoutSettings('fontSize', parseInt(e.target.value) || 11)}
+                        className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                        min="8"
+                        max="16"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Line Height <span className='text-xs text-gray-700 dark:text-gray-400'>(Adjusts Spacing Between Content)</span></label>
+                    <input
+                        type="text"
+                        value={layoutSettings.lineHeight}
+                        onChange={(e) => updateLayoutSettings('lineHeight', e.target.value)}
+                        className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                        placeholder="1.6"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Page Size</label>
+                    <select
+                        value={layoutSettings.pageSize}
+                        onChange={(e) => updateLayoutSettings('pageSize', e.target.value)}
+                        className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                    >
+                        <option value="A4">A4</option>
+                        <option value="Letter">Letter</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Font Family</label>
+                    <select
+                        value={layoutSettings.fontFamily}
+                        onChange={(e) => updateLayoutSettings('fontFamily', e.target.value)}
+                        className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                    >
+                        <option value='"CMU Serif", "Computer Modern Serif", Georgia, serif'>CMU Serif [Recommended]</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <h4 className="text-lg font-medium mb-4">Margins (px)</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Top</label>
+                        <input
+                            type="number"
+                            value={layoutSettings.margins.top}
+                            onChange={(e) => updateMargin('top', parseInt(e.target.value) || 20)}
+                            className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            min="10"
+                            max="50"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Bottom</label>
+                        <input
+                            type="number"
+                            value={layoutSettings.margins.bottom}
+                            onChange={(e) => updateMargin('bottom', parseInt(e.target.value) || 20)}
+                            className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            min="10"
+                            max="50"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Left</label>
+                        <input
+                            type="number"
+                            value={layoutSettings.margins.left}
+                            onChange={(e) => updateMargin('left', parseInt(e.target.value) || 20)}
+                            className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            min="10"
+                            max="50"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Right</label>
+                        <input
+                            type="number"
+                            value={layoutSettings.margins.right}
+                            onChange={(e) => updateMargin('right', parseInt(e.target.value) || 20)}
+                            className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            min="10"
+                            max="50"
+                        />
                     </div>
                 </div>
             </div>
-        );
-    };
+        </div>
+    );
+
+    const renderResumePreview = () => (
+        <div className="resume-content" style={{
+            fontFamily: layoutSettings.fontFamily,
+            height: '10.7in',
+        }}>
+            {/* Header */}
+            <div className="text-center mb-3" style={{
+                paddingBottom: '10pt',
+                marginBottom: '10pt'
+            }}>
+                <h1 className="mb-0" style={{
+                    fontSize: '24pt',
+                    fontWeight: 'normal',
+                    letterSpacing: '0.02em',
+                }}>
+                    {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+                </h1>
+                {resumeData.personalInfo.targetJobTitle && (
+                    <p style={{
+                        fontSize: '14pt',
+                        fontWeight: 'normal',
+                        marginBottom: '2pt'
+                    }}>
+                        {resumeData.personalInfo.targetJobTitle}
+                    </p>
+                )}
+
+                {/* Social Links on separate line */}
+                {(resumeData.personalInfo.githubUrl || resumeData.personalInfo.linkedinUrl) && (
+                    <div style={{
+                        fontSize: '10pt',
+                        fontWeight: 'normal',
+                    }}>
+                        {resumeData.personalInfo.githubUrl && (
+                            <span>
+                                <a href={resumeData.personalInfo.githubUrl} target='_blank' style={{ color: 'rgb(0, 51, 153)', textDecoration: 'none' }}>
+                                    Github: {resumeData.personalInfo.githubUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+                                </a>
+                                {resumeData.personalInfo.linkedinUrl && ' | '}
+                            </span>
+                        )}
+                        {resumeData.personalInfo.linkedinUrl && (
+                            <a href={resumeData.personalInfo.linkedinUrl} target='_blank' style={{ color: 'rgb(0, 51, 153)', textDecoration: 'none' }}>
+                                LinkedIn: {resumeData.personalInfo.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+                            </a>
+                        )}
+                    </div>
+                )}
+
+                {/* Contact info on next line */}
+                <div style={{
+                    fontSize: '10pt',
+                    fontWeight: 'normal',
+                    color: 'rgb(0, 51, 153)',
+                }}>
+                    {resumeData.personalInfo.email && (
+                        <span>{resumeData.personalInfo.email}</span>
+                    )}
+                    {resumeData.personalInfo.email && resumeData.personalInfo.phone && ' | '}
+                    {resumeData.personalInfo.phone && (
+                        <span>{resumeData.personalInfo.phone}</span>
+                    )}
+                    {(resumeData.personalInfo.email || resumeData.personalInfo.phone) && resumeData.personalInfo.location && ' | '}
+                    {resumeData.personalInfo.location && (
+                        <span>{resumeData.personalInfo.location}</span>
+                    )}
+                </div>
+            </div>
+
+            {/* Summary */}
+            {resumeData.summary && (
+                <div style={{ marginBottom: '10pt' }}>
+                    <h2 style={{
+                        fontSize: '14.4pt',
+                        textTransform: 'uppercase',
+                        textAlign: 'left',
+                        fontWeight: 'normal',
+                        marginBottom: '0',
+                        paddingBottom: '1pt',
+                        borderBottom: '0.4pt solid black',
+                        marginTop: '10pt'
+                    }}>
+                        Summary
+                    </h2>
+                    <p style={{
+                        textAlign: 'justify',
+                        fontSize: '10pt',
+                        lineHeight: '1.3',
+                        fontWeight: 'normal',
+                        marginTop: '6pt',
+                        marginBottom: '0'
+                    }}>
+                        {resumeData.summary}
+                    </p>
+                </div>
+            )}
+
+            {/* Skills */}
+            {resumeData.skills.categories.length > 0 && (() => {
+                // Calculate longest category name length
+                const longestCategory = Math.max(
+                    ...resumeData.skills.categories.map(cat => cat.name.length)
+                );
+                const labelWidth = `${longestCategory * 7 + 10}pt`; // Approximate width in points
+
+                return (
+                    <div style={{ marginBottom: '10pt' }}>
+                        <h2 style={{
+                            fontSize: '14.4pt',
+                            textTransform: 'uppercase',
+                            textAlign: 'left',
+                            fontWeight: 'normal',
+                            marginBottom: '0',
+                            paddingBottom: '1pt',
+                            borderBottom: '0.4pt solid black',
+                            marginTop: '10pt'
+                        }}>
+                            Skills
+                        </h2>
+                        <div style={{ fontSize: '10pt', marginTop: '6pt' }}>
+                            {resumeData.skills.categories.map((category) => (
+                                <div key={category.id} style={{
+                                    marginBottom: '2px',
+                                    display: 'flex'
+                                }}>
+                                    <span style={{
+                                        fontWeight: 'normal',
+                                        minWidth: labelWidth,
+                                        display: 'inline-block'
+                                    }}>
+                                        {category.name}:
+                                    </span>
+                                    <span style={{
+                                        fontWeight: 'normal',
+                                        flex: 1
+                                    }}>
+                                        {category.value}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Experience */}
+            {resumeData.experience.length > 0 && (
+                <div style={{ marginBottom: '10pt' }}>
+                    <h2 style={{
+                        fontSize: '14.4pt',
+                        textTransform: 'uppercase',
+                        textAlign: 'left',
+                        fontWeight: 'normal',
+                        marginBottom: '0',
+                        paddingBottom: '1pt',
+                        borderBottom: '0.4pt solid black',
+                        marginTop: '10pt'
+                    }}>
+                        Experience
+                    </h2>
+                    <div style={{ marginTop: '6pt' }}>
+                        {resumeData.experience.map((exp) => (
+                            <div key={exp.id} style={{
+                                marginBottom: '9pt',
+                                fontWeight: 'normal'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'baseline',
+                                    marginBottom: '6pt',
+                                    marginTop: '10pt'
+                                }}>
+                                    <div style={{
+                                        fontSize: '12pt',
+                                        fontWeight: 'normal'
+                                    }}>
+                                        <span style={{ fontWeight: 'bold' }}>{exp.position}</span>
+                                        <span> at </span>
+                                        <span style={{ fontWeight: 'bold' }}>{exp.company}</span>
+                                        <span style={{ marginLeft: '4pt' }}>({exp.location})</span>
+                                    </div>
+                                    <span style={{
+                                        fontSize: '12pt',
+                                        fontWeight: 'normal'
+                                    }}>
+                                        {exp.startDate} - {exp.endDate}
+                                    </span>
+                                </div>
+                                {exp.achievements.length > 0 && exp.achievements[0] && (
+                                    <ul style={{
+                                        fontSize: '10pt',
+                                        marginTop: '2pt',
+                                        marginBottom: '0',
+                                        marginLeft: '1em',
+                                        paddingLeft: '0',
+                                        listStyleType: 'none',
+                                        fontWeight: 'normal'
+                                    }}>
+                                        {exp.achievements.map((achievement, index) => (
+                                            achievement && <li key={index} style={{
+                                                lineHeight: '1.3',
+                                                marginBottom: '3pt',
+                                                position: 'relative',
+                                                paddingLeft: '1.2em'
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: '0'
+                                                }}>•</span>
+                                                {achievement}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Projects */}
+            {resumeData.projects.length > 0 && (
+                <div style={{ marginBottom: '10pt' }}>
+                    <h2 style={{
+                        fontSize: '14.4pt',
+                        textTransform: 'uppercase',
+                        textAlign: 'left',
+                        fontWeight: 'normal',
+                        marginBottom: '0',
+                        paddingBottom: '1pt',
+                        borderBottom: '0.4pt solid black',
+                        marginTop: '10pt'
+                    }}>
+                        Projects
+                    </h2>
+                    <div style={{ marginTop: '6pt' }}>
+                        {resumeData.projects.map((project) => (
+                            <div key={project.id} style={{
+                                marginBottom: '9pt',
+                                fontWeight: 'normal'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'baseline',
+                                    marginBottom: '2pt'
+                                }}>
+                                    <h3 style={{
+                                        fontSize: '12pt',
+                                        fontWeight: 'bold',
+                                        margin: '0'
+                                    }}>
+                                        {project.title}
+                                    </h3>
+                                    {project.link && (
+                                        <a href={project.link} target='_blank' style={{
+                                            color: 'rgb(0, 51, 153)',
+                                            textDecoration: 'none',
+                                            fontSize: '12pt',
+                                            fontWeight: 'normal'
+                                        }}>
+                                            Live Demo
+                                        </a>
+                                    )}
+                                </div>
+                                {project.technologies && (
+                                    <p style={{
+                                        fontSize: '9pt',
+                                        fontStyle: 'italic',
+                                        marginBottom: '2pt',
+                                        marginTop: '0',
+                                        fontWeight: 'normal'
+                                    }}>
+                                        Tech Stack: {project.technologies}
+                                    </p>
+                                )}
+                                {project.description.length > 0 && project.description[0] && (
+                                    <ul style={{
+                                        fontSize: '10pt',
+                                        marginTop: '2pt',
+                                        marginBottom: '0',
+                                        marginLeft: '1em',
+                                        paddingLeft: '0',
+                                        listStyleType: 'none',
+                                        fontWeight: 'normal'
+                                    }}>
+                                        {project.description.map((desc, index) => (
+                                            desc && <li key={index} style={{
+                                                lineHeight: '1.3',
+                                                marginBottom: '3pt',
+                                                position: 'relative',
+                                                paddingLeft: '1.2em'
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: '0'
+                                                }}>•</span>
+                                                {desc}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Education */}
+            {resumeData.education.length > 0 && (
+                <div style={{ marginBottom: '10pt' }}>
+                    <h2 style={{
+                        fontSize: '14.4pt',
+                        textTransform: 'uppercase',
+                        textAlign: 'left',
+                        fontWeight: 'normal',
+                        marginBottom: '0',
+                        paddingBottom: '1pt',
+                        borderBottom: '0.4pt solid black',
+                        marginTop: '10pt'
+                    }}>
+                        Education
+                    </h2>
+                    <div style={{
+                        fontSize: '11pt',
+                        marginTop: '6pt',
+                        fontWeight: 'normal'
+                    }}>
+                        {resumeData.education.map((edu) => (
+                            <div key={edu.id} style={{
+                                marginBottom: '6pt',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'baseline'
+                            }}>
+                                <div>
+                                    <span style={{ fontWeight: 'normal', marginLeft: '1em' }}>
+                                        {edu.degree} in{' '}
+                                    </span>
+                                    <span style={{ fontWeight: 'bold' }}>
+                                        {edu.field}
+                                    </span>
+                                    <span style={{ fontWeight: 'normal' }}>
+                                        {' '}at{' '}
+                                    </span>
+                                    <span style={{ fontWeight: 'bold' }}>
+                                        {edu.institution}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '1em', whiteSpace: 'nowrap' }}>
+                                    {edu.gpa && (
+                                        <span style={{ fontWeight: 'normal' }}>
+                                            (GPA: {edu.gpa})
+                                        </span>
+                                    )}
+                                    <span style={{ fontWeight: 'normal' }}>
+                                        {edu.startDate ? `${edu.startDate} - ${edu.endDate}` : edu.endDate}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Certifications & Achievements */}
+            {resumeData.certifications.length > 0 && (
+                <div style={{ marginBottom: '10pt' }}>
+                    <h2 style={{
+                        fontSize: '14.4pt',
+                        textTransform: 'uppercase',
+                        textAlign: 'left',
+                        fontWeight: 'normal',
+                        marginBottom: '0',
+                        paddingBottom: '1pt',
+                        borderBottom: '0.4pt solid black',
+                        marginTop: '10pt'
+                    }}>
+                        Certifications & Achievements
+                    </h2>
+                    <ul style={{
+                        fontSize: '10pt',
+                        marginTop: '6pt',
+                        marginBottom: '0',
+                        marginLeft: '1em',
+                        paddingLeft: '0',
+                        listStyleType: 'none',
+                        fontWeight: 'normal'
+                    }}>
+                        {resumeData.certifications.map((cert) => (
+                            <li key={cert.id} style={{
+                                lineHeight: '1.3',
+                                marginBottom: '3pt',
+                                position: 'relative',
+                                paddingLeft: '1.2em',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'baseline'
+                            }}>
+                                <span style={{
+                                    position: 'absolute',
+                                    left: '0'
+                                }}>•</span>
+                                <span>
+                                    {cert.name}
+                                    {cert.issuer && ` – ${cert.issuer}`}
+                                    {cert.date && ` (${cert.date})`}
+                                </span>
+                                {cert.link && (
+                                    <a href={cert.link} target='_blank' style={{
+                                        color: 'rgb(0, 51, 153)',
+                                        textDecoration: 'none',
+                                        marginLeft: '1em',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        View Credential
+                                    </a>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+
 
     return (
         <>
             <Header />
             <div className="flex flex-col pt-24">
-                <div className="text-center mb-4">
-                    <GradientText
-                        colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-                        animationSpeed={11}
-                        showBorder={false}
-                        className="text-5xl "
-                    >
-                        <p className="mb-5">
-                            Resume Builder
-                        </p>
-                    </GradientText>
-
-                </div>
-                {/* Left Panel - Editor */}
-                <div className="w-full border-r border-gray-200 border-b flex flex-col">
-                    {/* Header with tabs and download button */}
-                    <div className="p-4 border-b border-gray-200">
-                        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 mt-4 gap-2">
-                            {/* Left buttons (Editor, Layout & Style, Reset) */}
-                            <div className="flex gap-2 justify-center sm:justify-start">
+                {/* Top Controls */}
+                <div className="bg-white dark:bg-black shadow-md top-16 z-30 border-b border-gray-200 dark:border-gray-800">
+                    <div className="container mx-auto px-4 py-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                            {/* Left: Tab Buttons */}
+                            <div className="flex gap-2 flex-wrap justify-center">
                                 <button
                                     onClick={() => setActiveTab("editor")}
                                     className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors duration-200 ${activeTab === "editor"
-                                        ? "bg-blue-500 hover:bg-blue-600 text-white"
-                                        : "bg-gray-300 text-gray-900 hover:bg-gray-100"
+                                        ? "bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white"
+                                        : "bg-gray-300 text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                                         }`}
                                 >
-                                    <Edit3 size={16} /> Editor
+                                    <Edit3 size={16} />
+                                    Editor
                                 </button>
 
                                 <button
                                     onClick={() => setActiveTab("layout")}
                                     className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors duration-200 ${activeTab === "layout"
-                                        ? "bg-blue-500 hover:bg-blue-600 text-white"
-                                        : "bg-gray-300 text-gray-900 hover:bg-gray-100"
+                                        ? "bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white"
+                                        : "bg-gray-300 text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                                         }`}
                                 >
-                                    <Settings size={16} /> Layout & Style
+                                    <Settings size={16} />
+                                    Layout
+                                </button>
+                            </div>
+
+                            {/* Right: Action Buttons */}
+                            <div className="flex gap-2 flex-wrap justify-center">
+                                <button
+                                    onClick={handleDownload}
+                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white flex items-center gap-2 transition-colors duration-200"
+                                >
+                                    <Download size={16} />
+                                    <ShinyText text="Download HTML PDF" disabled={false} speed={3} className="custom-class" />
                                 </button>
 
                                 <button
                                     onClick={resetAllData}
-                                    className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
-                                    title="Reset all progress"
+                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center gap-2 transition-colors duration-200"
                                 >
-                                    <RotateCcw size={16} /> Reset
-                                </button>
-                            </div>
-
-                            {/* Download Button */}
-                            <div className="flex justify-center sm:justify-end sm:mt-0 mt-4">
-                                <button
-                                    onClick={handleDownload}
-                                    className="flex items-center gap-2 px-4 py-2 bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/90 hover:dark:bg-resume-secondary/80 text-white rounded-lg transition-colors duration-200"
-                                >
-                                    <Download className="font-medium" size={16} />{" "}
-                                    <ShinyText
-                                        text="Download PDF"
-                                        disabled={false}
-                                        speed={2}
-                                        className="font-medium"
-                                    />
+                                    <RotateCcw size={16} />
+                                    Reset
                                 </button>
                             </div>
                         </div>
 
-                        <div className='flex flex-col space-y-2 items-center justify-center'>
-                            <div className='sm:hidden flex justify-center items-center space-x-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4'>
-                                <NotebookPen className='size-8 sm:size-4 text-green-600' />
-                                <p>Use this feature in tablet, laptop or desktop for a better resume preview.</p>
-                            </div>
-
-                            {lastSaved && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                                    Last auto-saved at {lastSaved}
-                                </div>
-                            )}
-                        </div>
+                        {lastSaved && (
+                            <p className="text-xs text-gray-500 text-center mt-2">
+                                Last saved: {lastSaved}
+                            </p>
+                        )}
                     </div>
+                </div>
 
-                    {/* Editor Content */}
-                    <div className="flex-1 overflow-y-auto">
-                        {activeTab === 'editor' ? (
-                            <div className="flex flex-col">
+                {/* Main Content Area */}
+                <div className="flex-1">
+                    {activeTab === 'editor' ? (
+                        <div className="flex flex-col custom:flex-row justify-center items-center gap-4 p-4">
+                            <style>
+                                {`
+                                    @media (min-width: 1185px) {
+                                    .responsive-flex {
+                                        flex-direction: row !important;
+                                        }
+                                    }
+                                `}
+                            </style>
+                            {/* Editor Panel */}
+                            <div className="bg-white dark:bg-black rounded-lg shadow-lg p-6 overflow-y-auto h-full custom:max-h-[calc(100vh-200px)] w-full custom:w-[500pt] max-w-full">
                                 {/* Section Navigation */}
-                                <div className="w-full sm:border-r sm:border-b border-t border-b border-gray-200 p-6">
-                                    <h4 className="text-xl font-medium text-resume-primary dark:text-resume-secondary mb-6">Sections</h4>
-                                    <nav className="grid grid-cols-2 gap-1">
-                                        {Object.entries(sectionIcons).map(([section, Icon]) => (
-                                            <button
-                                                key={section}
-                                                onClick={() => setActiveSection(section as ActiveSection)}
-                                                className={`w-full text-left px-3 py-2 text-sm rounded-lg flex items-center gap-2 ${activeSection === section
-                                                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                                    : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300 transition-colors duration-200'
-                                                    }`}
-                                            >
-                                                <Icon size={16} />
-                                                <span className="sm:inline">
-                                                    {section === 'personal' ? 'Personal Info' :
-                                                        section === 'summary' ? 'Summary' :
-                                                            section === 'skills' ? 'Skills' :
-                                                                section === 'projects' ? 'Projects' :
-                                                                    section === 'experience' ? 'Experience' :
-                                                                        section === 'education' ? 'Education' :
-                                                                            'Certifications / Achievements'}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </nav>
+                                <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                                    {[
+                                        { id: 'personal', icon: User, label: 'Personal' },
+                                        { id: 'summary', icon: NotebookPen, label: 'Summary' },
+                                        { id: 'skills', icon: Code, label: 'Skills' },
+                                        { id: 'projects', icon: FolderOpen, label: 'Projects' },
+                                        { id: 'experience', icon: Briefcase, label: 'Experience' },
+                                        { id: 'education', icon: GraduationCap, label: 'Education' },
+                                        { id: 'certifications', icon: Award, label: 'Certifications' }
+                                    ].map(({ id, icon: Icon, label }) => (
+                                        <button
+                                            key={id}
+                                            onClick={() => setActiveSection(id as ActiveSection)}
+                                            className={cn(
+                                                "px-3 py-2 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition-all duration-200",
+                                                activeSection === id
+                                                    ? "bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 shadow-md"
+                                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                                            )}
+                                        >
+                                            <Icon size={16} />
+                                            {label}
+                                        </button>
+                                    ))}
                                 </div>
 
-                                {/* Section Editor */}
-                                <div className="flex-1 p-6 pb-12">
-                                    {renderEditorContent()}
+                                {/* Section Content */}
+                                {activeSection === 'personal' && renderPersonalInfoEditor()}
+                                {activeSection === 'summary' && renderSummaryEditor()}
+                                {activeSection === 'skills' && renderSkillsEditor()}
+                                {activeSection === 'projects' && renderProjectsEditor()}
+                                {activeSection === 'experience' && renderExperienceEditor()}
+                                {activeSection === 'education' && renderEducationEditor()}
+                                {activeSection === 'certifications' && renderCertificationsEditor()}
+                            </div>
+
+                            {/* Preview Panel */}
+                            <div className="bg-gray-200 dark:bg-black rounded-lg shadow-lg p-6 custom:overflow-y-auto max-h-[calc(100vh-200px)] min-w-[550pt] max-w-[620pt] lg:w-[620pt]">
+                                <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                                    <h2 className="text-xl font-semibold flex items-center gap-2">
+                                        <Eye size={20} />
+                                        <GradientText
+                                            colors={["#9BBD67", "#26C168", "#92C8C0", "#4079ff", "#E3F1E8"]}
+                                            animationSpeed={10}
+                                            showBorder={false}
+                                            className="text-xl"
+                                        >
+                                            Live Preview
+                                        </GradientText>
+                                    </h2>
+
+                                    {warnings.length > 0 && (
+                                        <button
+                                            onClick={() => setIsSuggestionsOpen(true)}
+                                            className="relative px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors flex items-center gap-2 dark:bg-yellow-900/20 dark:text-yellow-400"
+                                        >
+                                            <Lightbulb size={16} />
+                                            {warnings.length} Suggestions
+                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center animate-pulse">
+                                                {warnings.length}
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div
+                                    id="resume-preview"
+                                    style={{
+                                        fontSize: `${layoutSettings.fontSize}px`,
+                                        lineHeight: layoutSettings.lineHeight,
+                                        fontFamily: layoutSettings.fontFamily,
+                                        padding: `${layoutSettings.margins.top}px ${layoutSettings.margins.right}px ${layoutSettings.margins.bottom}px ${layoutSettings.margins.left}px`,
+                                    }}
+                                    className="resume-preview bg-white text-black"
+                                >
+                                    {renderResumePreview()}
                                 </div>
                             </div>
-                        ) : (
-                            <div className="p-6">
-                                {renderLayoutSettings()}
+                        </div>
+                    ) : activeTab === 'layout' ? (
+                        <div className="p-6">
+                            {renderLayoutSettings()}
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Suggestions Overlay */}
+                {isSuggestionsOpen && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-black rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                            <div className="sticky top-0 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700 p-6 flex justify-between items-center">
+                                <h3 className="text-2xl font-semibold flex items-center gap-2 text-resume-primary dark:text-resume-secondary">
+                                    <Lightbulb size={24} />
+                                    Resume Suggestions
+                                </h3>
+                                <button
+                                    onClick={() => setIsSuggestionsOpen(false)}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                >
+                                    <X size={24} />
+                                </button>
                             </div>
-                        )}
+
+                            <div className="p-6 space-y-4">
+                                {warnings.length > 0 ? (
+                                    warnings.map((warning, index) => (
+                                        <div
+                                            key={index}
+                                            className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex gap-3"
+                                        >
+                                            <Check className="text-yellow-600 flex-shrink-0 mt-1" size={20} />
+                                            <p className="text-yellow-800 dark:text-yellow-400">{warning}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex gap-3">
+                                        <Check className="text-green-600 flex-shrink-0 mt-1" size={20} />
+                                        <p className="text-green-800 dark:text-green-400">
+                                            Great! Your resume looks complete.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                {/* Right Panel - Resume Preview */}
-                <div className="text-xl font-medium text-center mt-10 mb-6 text-resume-primary dark:text-resume-secondary flex items-center justify-center gap-2">
-                    <span className="p-2 border-2 rounded-full flex items-center justify-center">
-                        <Eye size={20} className="text-resume-primary dark:text-resume-secondary" />
-                    </span>
-                    <span>PDF Preview</span>
-                </div>
-
-                {/* Suggestions Toggle Button */}
-                <div className='flex justify-center items-center mb-6'>
-                    <button
-                        onClick={() => setIsSuggestionsOpen(!isSuggestionsOpen)}
-                        className="ml-4 p-4 w-auto border-2 rounded-full flex items-center justify-center bg-amber-200/20 hover:bg-amber-200/40 dark:hover:bg-amber-200/30 transition-colors duration-200"
-                    >
-                        <Lightbulb size={20} className="text-amber-400" />
-                        <p className='pl-3'>Click for Suggestions</p>
-                    </button>
-                </div>
-            </div>
-
-            {/* Suggestions Menu Overlay */}
-            <div
-                className={cn(
-                    "fixed inset-0 bg-white/95 dark:bg-black/95 backdrop-blur-md z-40 flex flex-col items-center justify-center",
-                    "transition-all duration-300",
-                    isSuggestionsOpen
-                        ? "opacity-100 pointer-events-auto"
-                        : "opacity-0 pointer-events-none"
                 )}
-            >
-                <div className="max-w-4xl mx-auto px-6">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-3xl font-bold text-resume-primary dark:text-resume-secondary">
-                            Resume Building Tips
-                        </h2>
-                        <button
-                            onClick={() => setIsSuggestionsOpen(false)}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors duration-200"
-                        >
-                            <X size={24} className="text-gray-600 dark:text-gray-300" />
-                        </button>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6 text-left max-h-[60vh] overflow-y-auto">
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Keep it Concise
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Limit your resume to 1 page. Recruiters typically spend 6-10 seconds scanning a resume initially.
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Use Action Verbs
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Start bullet points with strong action verbs like 'Developed', 'Implemented', 'Optimized', 'Led', 'Collaborated'.
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Quantify Achievements
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Include numbers, percentages, and metrics wherever possible. Example: 'Improved performance by 40%' instead of 'Improved performance'.
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Tailor for Each Job
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Customize your resume for each application by highlighting relevant skills and experiences that match the job description.
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Use Keywords
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Include industry-specific keywords from the job posting to pass through Applicant Tracking Systems (ATS).
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Professional Formatting
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Use consistent fonts, spacing, and formatting. Ensure your resume is easy to read both digitally and when printed.
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Proofread Carefully
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Check for spelling, grammar, and formatting errors. Have someone else review it for a fresh perspective.
-                            </p>
-                        </div>
-
-                        <div className="bg-gray-200 dark:bg-gray-800 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3 text-resume-primary dark:text-resume-secondary">
-                                Include Relevant Links
-                            </h3>
-                            <p className="text-gray-700 dark:text-gray-300">
-                                Add links to your LinkedIn, GitHub, portfolio, or other professional profiles that showcase your work.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-8 text-center">
-                        <button
-                            onClick={() => setIsSuggestionsOpen(false)}
-                            className="bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90 text-white px-6 py-2 rounded-lg transition-colors duration-200"
-                        >
-                            Got it!
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {showWarning && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-96 text-center">
-                        <h2 className="text-lg font-bold text-red-600 mb-3">
-                            ⚠ Content Exceeds Page Limit
-                        </h2>
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">
-                            Your resume is longer than one {layoutSettings.pageSize} page.
-                            Some content may be cut off when exporting to PDF/printing.
-                        </p>
-                        <button
-                            onClick={() => setShowWarning(false)}
-                            className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition"
-                        >
-                            Okay, Got It
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <div className="flex-1 flex justify-center items-center p-4 lg:p-8 overflow-y-auto bg-gray-200 dark:bg-black">
-                <style>
-                    {`
-                        .resume-page {
-                            page-break-after: always;
-                            break-after: page;
-                        }
-                        .resume-page:last-child {
-                            page-break-after: auto;
-                            break-after: auto;
-                        }
-                        .resume-section {
-                            page-break-inside: avoid;
-                            break-inside: avoid;
-                        }
-                        .resume-item {
-                            page-break-inside: avoid;
-                            break-inside: avoid;
-                        }
-                        @media print {
-                            .resume-page {
-                                height: ${layoutSettings.pageSize === 'A4' ? '11.7in' : '11in'};
-                                width: ${layoutSettings.pageSize === 'A4' ? '8.27in' : '8.5in'};
-                                margin: 0;
-                                padding: ${layoutSettings.margins.top}in ${layoutSettings.margins.right}in ${layoutSettings.margins.bottom}in ${layoutSettings.margins.left}in;
-                                page-break-after: always;
-                                font-family: "${layoutSettings.fontFamily || 'Arial'}", sans-serif;
-                            }
-                            .resume-page:last-child {
-                                page-break-after: auto;
-                            }
-                        }
-                    `}
-                </style>
-
-                <div id="resume-preview" className="space-y-8 sm:w-auto w-full">
-                    {/* First Page */}
-                    <div
-                        className="bg-white resume-page"
-                        style={{
-                            width: layoutSettings.pageSize === 'A4' ? '8.27in' : '8.5in',
-                            maxWidth: '100%',
-                            height: layoutSettings.pageSize === 'A4' ? '11.7in' : '11in',
-                            padding: `${layoutSettings.margins.top}in ${layoutSettings.margins.right}in ${layoutSettings.margins.bottom}in ${layoutSettings.margins.left}in`,
-                            fontSize: `${layoutSettings.fontSize}px`,
-                            lineHeight: layoutSettings.lineHeight,
-                            fontFamily: `"${layoutSettings.fontFamily || 'Arial'}", sans-serif`,
-                            overflow: 'hidden',
-                            position: 'relative'
-                        }}
-                    >
-                        {/* Header */}
-                        <div className="text-center border-b-2 border-gray-800 pb-4 mb-6 resume-section">
-                            <div
-                                className="font-bold text-black mb-2"
-                                style={{ fontSize: `${layoutSettings.fontSize * 2.9}px` }}
-                            >
-                                {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
-                            </div>
-                            <div
-                                className="text-gray-600 mb-2"
-                                style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                            >
-                                {resumeData.personalInfo.targetJobTitle}
-                            </div>
-
-                            {/* Contact Information Line */}
-                            <div
-                                className="text-gray-700 mb-2 flex flex-wrap justify-center items-center gap-1"
-                                style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                            >
-                                {/* Email with mailto link*/}
-                                <a
-                                    href={`mailto:${resumeData.personalInfo.email}`}
-                                    className="text-black font-semibold underline"
-                                >
-                                    {resumeData.personalInfo.email}
-                                </a>
-
-                                {resumeData.personalInfo.phone && (
-                                    <>
-                                        <span className="mx-1">•</span>
-                                        <span>{resumeData.personalInfo.phone}</span>
-                                    </>
-                                )}
-
-                                {resumeData.personalInfo.location && (
-                                    <>
-                                        <span className="mx-1">•</span>
-                                        <span>{resumeData.personalInfo.location}</span>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* Professional Links Line */}
-                            {(resumeData.personalInfo.linkedinUrl ||
-                                resumeData.personalInfo.githubUrl ||
-                                resumeData.personalInfo.portfolioUrl ||
-                                resumeData.personalInfo.leetcodeUrl) && (
-                                    <div
-                                        className="text-gray-700 flex flex-wrap justify-center items-center gap-1"
-                                        style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                    >
-                                        {resumeData.personalInfo.linkedinUrl && (
-                                            <a
-                                                href={
-                                                    resumeData.personalInfo.linkedinUrl.startsWith("http")
-                                                        ? resumeData.personalInfo.linkedinUrl
-                                                        : `https://${resumeData.personalInfo.linkedinUrl}`
-                                                }
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-black font-semibold underline"
-                                            >
-                                                LinkedIn
-                                            </a>
-                                        )}
-
-                                        {resumeData.personalInfo.githubUrl && (
-                                            <>
-                                                {resumeData.personalInfo.linkedinUrl && <span className="mx-1">•</span>}
-                                                <a
-                                                    href={
-                                                        resumeData.personalInfo.githubUrl.startsWith("http")
-                                                            ? resumeData.personalInfo.githubUrl
-                                                            : `https://${resumeData.personalInfo.githubUrl}`
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-black font-semibold underline"
-                                                >
-                                                    GitHub
-                                                </a>
-                                            </>
-                                        )}
-
-                                        {resumeData.personalInfo.portfolioUrl && (
-                                            <>
-                                                {(resumeData.personalInfo.linkedinUrl ||
-                                                    resumeData.personalInfo.githubUrl) && <span className="mx-1">•</span>}
-                                                <a
-                                                    href={
-                                                        resumeData.personalInfo.portfolioUrl.startsWith("http")
-                                                            ? resumeData.personalInfo.portfolioUrl
-                                                            : `https://${resumeData.personalInfo.portfolioUrl}`
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-black font-semibold underline"
-                                                >
-                                                    Portfolio
-                                                </a>
-                                            </>
-                                        )}
-
-                                        {resumeData.personalInfo.leetcodeUrl && (
-                                            <>
-                                                {(resumeData.personalInfo.linkedinUrl ||
-                                                    resumeData.personalInfo.githubUrl ||
-                                                    resumeData.personalInfo.portfolioUrl) && (
-                                                        <span className="mx-1">•</span>
-                                                    )}
-                                                <a
-                                                    href={
-                                                        resumeData.personalInfo.leetcodeUrl.startsWith("http")
-                                                            ? resumeData.personalInfo.leetcodeUrl
-                                                            : `https://${resumeData.personalInfo.leetcodeUrl}`
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-black font-semibold underline"
-                                                >
-                                                    LeetCode
-                                                </a>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                        </div>
-
-                        {/* Summary Section */}
-                        {resumeData.summary && (
-                            <div className="mb-6 resume-section">
-                                <h2
-                                    className="font-bold text-black mb-3 pb-1 border-b border-gray-300 uppercase"
-                                    style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                                >
-                                    Summary
-                                </h2>
-                                <p className="text-gray-700" style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}>
-                                    {resumeData.summary}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Technical Skills Section */}
-                        {resumeData.skills.categories && resumeData.skills.categories.length > 0 && (
-                            <div className="mb-6 resume-section">
-                                <h2
-                                    className="font-bold text-black mb-3 pb-1 border-b border-gray-300 uppercase"
-                                    style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                                >
-                                    Technical Skills
-                                </h2>
-                                <div className="space-y-2">
-                                    {resumeData.skills.categories.map((category) => (
-                                        category.value && (
-                                            <div key={category.id} className="flex flex-wrap">
-                                                <strong className="text-black mr-2" style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}>
-                                                    {category.name}:
-                                                </strong>
-                                                <div className="text-gray-700" style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}>
-                                                    {category.value}
-                                                </div>
-                                            </div>
-                                        )
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Projects Section */}
-                        {resumeData.projects.length > 0 && (
-                            <div className="mb-6 resume-section">
-                                <h2
-                                    className="font-bold text-black mb-3 pb-1 border-b border-gray-300 uppercase"
-                                    style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                                >
-                                    Projects
-                                </h2>
-                                {resumeData.projects.map((project) => (
-                                    <div key={project.id} className="mb-5 resume-item">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <div
-                                                className="font-bold text-black"
-                                                style={{ fontSize: `${layoutSettings.fontSize * 1.5}px` }}
-                                            >
-                                                {project.title}
-                                            </div>
-                                            {project.link && (
-                                                <a
-                                                    href={project.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-black font-semibold underline ml-4 flex-shrink-0"
-                                                    style={{ fontSize: `${layoutSettings.fontSize * 1.2}px` }}
-                                                >
-                                                    Link
-                                                </a>
-                                            )}
-                                        </div>
-                                        {project.technologies && (
-                                            <div
-                                                className="text-gray-600 italic mb-2"
-                                                style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                            >
-                                                Tech Stack: {project.technologies}
-                                            </div>
-                                        )}
-                                        <ul className="ml-5">
-                                            {project.description.filter(desc => desc.trim()).map((desc, index) => (
-                                                <li
-                                                    key={index}
-                                                    className="text-gray-700 mb-1"
-                                                    style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                                >
-                                                    • {desc}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Experience Section */}
-                        {resumeData.experiences.length > 0 && (
-                            <div className="mb-6 resume-section">
-                                <h2
-                                    className="font-bold text-black mb-3 pb-1 border-b border-gray-300 uppercase"
-                                    style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                                >
-                                    Experience
-                                </h2>
-                                {resumeData.experiences.map((exp) => (
-                                    <div key={exp.id} className="mb-5 resume-item">
-                                        <div
-                                            className="font-bold text-black mb-1"
-                                            style={{ fontSize: `${layoutSettings.fontSize * 1.5}px` }}
-                                        >
-                                            {exp.title}
-                                        </div>
-                                        <div
-                                            className="text-gray-600 mb-2"
-                                            style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                        >
-                                            {exp.company} • {exp.duration}
-                                        </div>
-                                        <ul className="ml-5">
-                                            {exp.description.filter(desc => desc.trim()).map((desc, index) => (
-                                                <li
-                                                    key={index}
-                                                    className="text-gray-700 mb-1"
-                                                    style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                                >
-                                                    • {desc}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Education Section */}
-                        {resumeData.education.length > 0 && (
-                            <div className="mb-6 resume-section">
-                                <h2
-                                    className="font-bold text-black mb-3 pb-1 border-b border-gray-300 uppercase"
-                                    style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                                >
-                                    Education
-                                </h2>
-                                {resumeData.education.map((edu) => (
-                                    <div key={edu.id} className="mb-4 resume-item">
-                                        <div
-                                            className="font-bold text-black mb-1"
-                                            style={{ fontSize: `${layoutSettings.fontSize * 1.5}px` }}
-                                        >
-                                            {edu.degree} - {edu.field}
-                                        </div>
-                                        <div
-                                            className="text-gray-600"
-                                            style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                        >
-                                            {edu.institution} • Expected Graduation: {edu.graduationDate}
-                                            {edu.gpa && ` • GPA: ${edu.gpa}`}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Certifications Section */}
-                        {resumeData.certifications.length > 0 && (
-                            <div className="mb-6 resume-section">
-                                <h2
-                                    className="font-bold text-black mb-3 pb-1 border-b border-gray-300 uppercase"
-                                    style={{ fontSize: `${layoutSettings.fontSize * 1.7}px` }}
-                                >
-                                    Certifications / Achievements
-                                </h2>
-                                <ul className="ml-5 list-disc list-outside">
-                                    {resumeData.certifications.map((cert) => (
-                                        <li
-                                            key={cert.id}
-                                            className="text-gray-700 mb-2 resume-item"
-                                            style={{ fontSize: `${layoutSettings.fontSize * 1.3}px` }}
-                                        >
-                                            <div>
-                                                <strong>{cert.name}</strong> - {cert.issuer} ({cert.date})
-                                                {cert.credentialId && ` - Credential ID: ${cert.credentialId}`}
-                                            </div>
-                                            {cert.link && (
-                                                <div className="mt-1">
-                                                    <a
-                                                        href={cert.link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-black font-bold underline"
-                                                        style={{ fontSize: `${layoutSettings.fontSize * 1.2}px` }}
-                                                    >
-                                                        View Credential
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                </div>
             </div>
         </>
     );
