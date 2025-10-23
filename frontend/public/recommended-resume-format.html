@@ -24,6 +24,9 @@
             background: white;
             padding: 0.5in;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 10.7in;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .download-btn {
@@ -48,25 +51,25 @@
         /* Header Styles */
         .header {
             text-align: center;
+            margin-bottom: 3pt;
             padding-bottom: 10pt;
-            margin-bottom: 10pt;
         }
 
         .header h1 {
-            font-size: 30pt;
+            font-size: 24pt;
             font-weight: normal;
             letter-spacing: 0.02em;
-            margin-bottom: 2px;
+            margin-bottom: 0;
         }
 
         .header .job-title {
-            font-size: 15pt;
+            font-size: 14pt;
             font-weight: normal;
-            margin-bottom: 4pt;
+            margin-bottom: 2pt;
         }
 
         .header .social-links {
-            font-size: 12pt;
+            font-size: 10pt;
             font-weight: normal;
         }
 
@@ -76,7 +79,7 @@
         }
 
         .header .contact-info {
-            font-size: 12pt;
+            font-size: 10pt;
             font-weight: normal;
             color: rgb(0, 51, 153);
         }
@@ -87,9 +90,8 @@
         }
 
         .section h2 {
-            font-size: 18pt;
-            letter-spacing: 0.5pt;
-            font-variant: small-caps;
+            font-size: 14.4pt;
+            text-transform: uppercase;
             text-align: left;
             font-weight: normal;
             margin-bottom: 0;
@@ -105,29 +107,66 @@
         /* Summary */
         .summary-text {
             text-align: justify;
-            font-size: 12pt;
+            font-size: 10pt;
+            line-height: 1.3;
             font-weight: normal;
             margin-top: 6pt;
             margin-bottom: 0;
+        }
+
+        /* Skills */
+        .skills-grid {
+            font-size: 10pt;
+            margin-top: 6pt;
+        }
+
+        .skill-row {
+            margin-bottom: 2px;
+            display: flex;
+        }
+
+        .skill-label {
+            font-weight: normal;
+            display: inline-block;
+        }
+
+        .skill-value {
+            font-weight: normal;
+            flex: 1;
         }
 
         /* Experience */
         .experience-item {
             margin-bottom: 9pt;
             font-weight: normal;
-            font-size: 12pt;
         }
 
         .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
             margin-bottom: 6pt;
             margin-top: 10pt;
-            font-size: 14pt;
-            font-weight: bolder;
+        }
+
+        .experience-header .left {
+            font-size: 12pt;
+            font-weight: normal;
+        }
+
+        .experience-header .position,
+        .experience-header .company {
+            font-weight: bold;
+        }
+
+        .experience-header .date {
+            font-size: 12pt;
+            font-weight: normal;
         }
 
         .achievement-list {
-            font-size: 12pt;
-            margin-top: 6pt;
+            font-size: 10pt;
+            margin-top: 2pt;
             margin-bottom: 0;
             margin-left: 1em;
             padding-left: 0;
@@ -148,28 +187,6 @@
             left: 0;
         }
 
-        /* Skills */
-        .skills-grid {
-            font-size: 12pt;
-            margin-top: 6pt;
-        }
-
-        .skill-row {
-            margin-bottom: 2px;
-            display: flex;
-        }
-
-        .skill-label {
-            font-weight: normal;
-            min-width: 110pt;
-            display: inline-block;
-        }
-
-        .skill-value {
-            font-weight: normal;
-            flex: 1;
-        }
-
         /* Projects */
         .project-item {
             margin-bottom: 9pt;
@@ -184,27 +201,23 @@
         }
 
         .project-header h3 {
-            font-size: 14pt;
-            font-weight: bolder;
+            font-size: 12pt;
+            font-weight: bold;
             margin: 0;
         }
 
         .project-link {
-            font-size: 12pt;
-            font-weight: normal;
             color: rgb(0, 51, 153);
             text-decoration: none;
-        }
-
-        .project-link:hover {
-            text-decoration: underline;
+            font-size: 12pt;
+            font-weight: normal;
         }
 
         .project-tech {
-            font-size: 12pt;
+            font-size: 9pt;
             font-style: italic;
             margin-bottom: 2pt;
-            margin-top:6pt;
+            margin-top: 0;
             font-weight: normal;
         }
 
@@ -214,8 +227,13 @@
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            font-size: 12pt;
+            font-size: 11pt;
             font-weight: normal;
+        }
+
+        .education-item .degree {
+            font-weight: normal;
+            margin-left: 1em;
         }
 
         .education-item .field,
@@ -223,8 +241,15 @@
             font-weight: bold;
         }
 
+        .education-item .right {
+            display: flex;
+            gap: 1em;
+            white-space: nowrap;
+        }
+
+        /* Certifications */
         .cert-list {
-            font-size: 12pt;
+            font-size: 10pt;
             margin-top: 6pt;
             margin-bottom: 0;
             margin-left: 1em;
@@ -234,25 +259,13 @@
         }
 
         .cert-list li {
+            line-height: 1.3;
+            margin-bottom: 3pt;
+            position: relative;
+            padding-left: 1.2em;
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-bottom: 4pt;
-            line-height: 1.3;
-            position: relative;
-            padding-left: 1.2em;
-        }
-
-
-
-        .cert-list li a {
-            color: rgb(0, 51, 153);
-            text-decoration: none;
-            font-size: 12pt;
-        }
-
-        .cert-list li a:hover {
-            text-decoration: underline;
         }
 
         .cert-list li::before {
@@ -261,6 +274,12 @@
             left: 0;
         }
 
+        .cert-list li a {
+            color: rgb(0, 51, 153);
+            text-decoration: none;
+            margin-left: 1em;
+            white-space: nowrap;
+        }
 
         @media print {
             body {
@@ -297,10 +316,10 @@
 
             <div class="social-links">
                 <span>
-                    <a href="https://github.com/username">Github: github.com/username</a>
+                    <a href="https://github.com/username" target="_blank">Github: github.com/username</a>
                     |
                 </span>
-                <a href="https://www.linkedin.com/in/username">LinkedIn: www.linkedin.com/in/username</a>
+                <a href="https://www.linkedin.com/in/username" target="_blank">LinkedIn: linkedin.com/in/username</a>
             </div>
 
             <div class="contact-info">
@@ -322,17 +341,42 @@
             </p>
         </div>
 
+        <!-- Skills -->
+        <div class="section">
+            <h2>Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-row">
+                    <span class="skill-label" style="min-width: 110pt;">Category 1:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+                <div class="skill-row">
+                    <span class="skill-label" style="min-width: 110pt;">Category 2:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+                <div class="skill-row">
+                    <span class="skill-label" style="min-width: 110pt;">Category 3:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+                <div class="skill-row">
+                    <span class="skill-label" style="min-width: 110pt;">Category 4:</span>
+                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Experience -->
         <div class="section">
             <h2>Experience</h2>
             <div class="section-content">
                 <div class="experience-item">
                     <div class="experience-header">
-                        <span class="date">2024</span>
-                        <span style="margin-left: 1em;"></span>
-                        <span class="role">SDE</span>
-                        <span class="company"> at </span>
-                        <span class="role">XYZ</span>
+                        <div class="left">
+                            <span class="position">Software Engineer</span>
+                            <span> at </span>
+                            <span class="company">Company Name</span>
+                            <span style="margin-left: 4pt;">(Location)</span>
+                        </div>
+                        <span class="date">Jan 2023 - Present</span>
                     </div>
                     <ul class="achievement-list">
                         <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam nobis blanditiis odit iure
@@ -346,56 +390,53 @@
             </div>
         </div>
 
-        <!-- Skills -->
-        <div class="section">
-            <h2>Skills</h2>
-            <div class="skills-grid">
-                <div class="skill-row">
-                    <span class="skill-label">Category 1:</span>
-                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
-                </div>
-                <div class="skill-row">
-                    <span class="skill-label">Category 2:</span>
-                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
-                </div>
-                <div class="skill-row">
-                    <span class="skill-label">Category 3:</span>
-                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
-                </div>
-                <div class="skill-row">
-                    <span class="skill-label">Category 4:</span>
-                    <span class="skill-value">Skill 1, Skill 2, Skill 3</span>
-                </div>
-            </div>
-        </div>
-
         <!-- Projects -->
         <div class="section">
             <h2>Projects</h2>
             <div class="section-content">
-                <div class="project-header">
-                    <h3>Project 1: 5–6 words description</h3>
-                    <a href="https://demo.com" class="project-link">Live Demo</a>
+                <div class="project-item">
+                    <div class="project-header">
+                        <h3>Project Title</h3>
+                        <a href="https://demo.com" target="_blank" class="project-link">Live Demo</a>
+                    </div>
+                    <p class="project-tech">Tech Stack: React, Node.js, MongoDB</p>
+                    <ul class="achievement-list">
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit.</li>
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit.</li>
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit.</li>
+                    </ul>
                 </div>
 
-                <p class="project-tech">Tech Stack: Skill 1, Skill 2, Skill 3</p>
-                <ul class="achievement-list">
-                    <li>[What the project is about]</li>
-                    <li>[What problem it solves]</li>
-                    <li>[Impact with numbers]</li>
-                </ul>
-
-                <div class="project-header">
-                    <h3>Project 2: 5–6 words description</h3>
-                    <a href="https://demo.com" class="project-link">Live Demo</a>
+                <div class="project-item">
+                    <div class="project-header">
+                        <h3>Another Project</h3>
+                        <a href="https://demo.com" target="_blank" class="project-link">Live Demo</a>
+                    </div>
+                    <p class="project-tech">Tech Stack: Python, Django, PostgreSQL</p>
+                    <ul class="achievement-list">
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit.</li>
+                        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit.</li>
+                    </ul>
                 </div>
+            </div>
+        </div>
 
-                <p class="project-tech">Tech Stack: Skill 1, Skill 2, Skill 3</p>
-                <ul class="achievement-list">
-                    <li>[What the project is about]</li>
-                    <li>[What problem it solves]</li>
-                    <li>[Impact with numbers]</li>
-                </ul>
+        <!-- Education -->
+        <div class="section">
+            <h2>Education</h2>
+            <div class="section-content">
+                <div class="education-item">
+                    <div>
+                        <span class="degree">B.Tech in </span>
+                        <span class="field">Computer Science</span>
+                        <span> at </span>
+                        <span class="institution">University Name</span>
+                    </div>
+                    <div class="right">
+                        <span>(GPA: 8.5)</span>
+                        <span>2020 - 2024</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -404,36 +445,18 @@
             <h2>Certifications & Achievements</h2>
             <ul class="cert-list">
                 <li>
-                    <span>Certification / Achievement 1</span>
+                    <span>AWS Certified Developer – Amazon (2024)</span>
                     <a href="https://demo.com" target="_blank">View Credential</a>
                 </li>
                 <li>
-                    <span>Certification / Achievement 2</span>
-                    <a href="#">View Credential</a>
+                    <span>Google Cloud Professional – Google (2023)</span>
+                    <a href="https://demo.com" target="_blank">View Credential</a>
                 </li>
                 <li>
-                    <span>Certification / Achievement 3</span>
-                    <a href="#">View Credential</a>
+                    <span>Hackathon Winner – Tech Event 2023</span>
+                    <a href="https://demo.com" target="_blank">View Credential</a>
                 </li>
             </ul>
-        </div>
-
-
-        <!-- Education -->
-        <div class="section">
-            <h2>Education</h2>
-            <div class="section-content">
-                <div class="education-item">
-                    <div>
-                        <span>2018 - 2022</span>
-                        <span style="margin-left: 1em;">Degree in </span>
-                        <span class="field">Major</span>
-                        <span> at </span>
-                        <span class="institution">Institution Name</span>
-                    </div>
-                    <span style="margin-left: 1em;">[GPA if good]</span>
-                </div>
-            </div>
         </div>
     </div>
 </body>
