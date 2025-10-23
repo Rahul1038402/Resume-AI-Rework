@@ -1332,11 +1332,14 @@ export default function ResumeBuilder() {
         </div>
     );
 
-    const renderResumePreview = () => (
-        <div className="resume-content" style={{
-            fontFamily: layoutSettings.fontFamily,
-            height: '10.7in',
-        }}>
+const renderResumePreview = () => (
+    <div className="resume-content" style={{
+        fontFamily: layoutSettings.fontFamily,
+        height: '10.7in',
+        wordWrap: 'break-word',
+        overflowWrap: 'break-word',
+        maxWidth: '100%',
+    }}>
             {/* Header */}
             <div className="text-center mb-3" style={{
                 paddingBottom: '10pt',
@@ -1874,7 +1877,7 @@ export default function ResumeBuilder() {
                             </div>
 
                             {/* Preview Panel */}
-                            <div className="bg-gray-200 dark:bg-black rounded-lg shadow-lg p-6 custom:overflow-y-auto max-h-[calc(100vh-200px)] min-w-[550pt] max-w-[620pt] lg:w-[620pt]">
+<div className="bg-gray-200 dark:bg-black rounded-lg shadow-lg p-6 overflow-x-auto custom:overflow-y-auto max-h-[calc(100vh-200px)] w-full custom:w-[620pt]">
                                 <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                                     <h2 className="text-xl font-semibold flex items-center gap-2">
                                         <Eye size={20} />
@@ -1902,18 +1905,21 @@ export default function ResumeBuilder() {
                                     )}
                                 </div>
 
-                                <div
-                                    id="resume-preview"
-                                    style={{
-                                        fontSize: `${layoutSettings.fontSize}px`,
-                                        lineHeight: layoutSettings.lineHeight,
-                                        fontFamily: layoutSettings.fontFamily,
-                                        padding: `${layoutSettings.margins.top}px ${layoutSettings.margins.right}px ${layoutSettings.margins.bottom}px ${layoutSettings.margins.left}px`,
-                                    }}
-                                    className="resume-preview bg-white text-black"
-                                >
-                                    {renderResumePreview()}
-                                </div>
+<div
+    id="resume-preview"
+    style={{
+        fontSize: `${layoutSettings.fontSize}px`,
+        lineHeight: layoutSettings.lineHeight,
+        fontFamily: layoutSettings.fontFamily,
+        padding: `${layoutSettings.margins.top}px ${layoutSettings.margins.right}px ${layoutSettings.margins.bottom}px ${layoutSettings.margins.left}px`,
+        wordWrap: 'break-word',
+        overflowWrap: 'break-word',
+        maxWidth: '100%',
+    }}
+    className="resume-preview bg-white text-black"
+>
+    {renderResumePreview()}
+</div>
                             </div>
                         </div>
                     ) : activeTab === 'layout' ? (
