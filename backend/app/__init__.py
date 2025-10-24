@@ -22,13 +22,13 @@ def create_app():
     # Set maximum file upload size (10MB)
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
     
-    # Validate Gemini API key on startup
-    if not os.environ.get('GEMINI_API_KEY'):
-        print("WARNING: GEMINI_API_KEY environment variable not set!")
-        print("Please set your Gemini API key: export GEMINI_API_KEY=your_key_here")
-        print("Get your free API key at: https://makersuite.google.com/app/apikey")
+    # Validate Groq API key on startup
+    if not os.environ.get('GROQ_API_KEY'):
+        print("WARNING: GROQ_API_KEY environment variable not set!")
+        print("Please set your Groq API key: export GROQ_API_KEY=your_key_here")
+        print("Get your free API key at: https://console.groq.com/keys")
     else:
-        print("✓ Gemini API key found")
+        print("✓ Groq API key found")
     
     # Register routes
     app.register_blueprint(routes)

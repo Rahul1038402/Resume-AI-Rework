@@ -5,7 +5,7 @@ import tempfile
 import os
 from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import RequestEntityTooLarge
-from app.groq_analyzer import analyze_resume_with_groq as analyze_resume_with_gemini, extract_text_from_pdf, extract_text_from_docx, test_groq_connection as test_gemini_connection
+from app.groq_analyzer import analyze_resume_with_groq, extract_text_from_pdf, extract_text_from_docx, test_groq_connection
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -18,23 +18,23 @@ def home():
     """Health check endpoint"""
     return jsonify({
         "status": "running",
-        "message": "Resume AI backend is running with Gemini!"
+        "message": "Resume AI backend is running with Groq!"
     })
 
 @routes.route("/health", methods=["GET"])
 def health_check():
-    """Comprehensive health check including Gemini connectivity"""
+    """Comprehensive health check including Groq connectivity"""
     try:
-        gemini_status = test_gemini_connection()
+        groq_status = test_groq_connection()
         return jsonify({
-            "status": "healthy" if gemini_status else "degraded",
-            "gemini_connected": gemini_status,
-            "message": "All systems operational" if gemini_status else "Gemini API connection issue"
+            "status": "healthy" if groq_status else "degraded",
+            "groq_connected": groq_status,
+            "message": "All systems operational" if groq_status else "Groq API connection issue"
         })
     except Exception as e:
         return jsonify({
             "status": "unhealthy",
-            "gemini_connected": False,
+            "groq_connected": False,
             "error": str(e)
         }), 500
 
@@ -67,8 +67,8 @@ def analyze_resume_api():
         if job_description:
             logger.info(f"Job description provided: {job_description[:100]}...")
 
-        # Run Gemini-powered analysis with job description
-        result = analyze_resume_with_gemini(
+        # Run Groq-powered analysis with job description
+        result = analyze_resume_with_groq(
             file_path=tmp_path, 
             job_title=job_title, 
             job_skills=None,  # Always None - let Gemini decide
@@ -144,8 +144,8 @@ def analyze_multiple_jobs():
                 # Get job description if provided
                 job_description = request.form.get(f"{job}_description", "").strip()
                 
-                # Analyze with Gemini - let it determine required skills
-                result = analyze_resume_with_gemini(
+                # Analyze with Groq - let it determine required skills
+                result = analyze_resume_with_groq(
                     file_path=tmp_path, 
                     job_title=job, 
                     job_skills=None,  # Let Gemini decide
@@ -208,8 +208,8 @@ def get_project_highlights():
             file.save(tmp.name)
             tmp_path = tmp.name
 
-        # Run analysis with Gemini - let it determine skills based on job
-        result = analyze_resume_with_gemini(
+        # Run analysis with Groq - let it determine skills based on job
+        result = analyze_resume_with_groq(
             file_path=tmp_path, 
             job_title=job_title if job_title else None, 
             job_skills=None,  # Let Gemini decide
@@ -258,8 +258,8 @@ def extract_skills_only():
             file.save(tmp.name)
             tmp_path = tmp.name
 
-        # Run basic analysis with Gemini (no job matching)
-        result = analyze_resume_with_gemini(file_path=tmp_path)
+        # Run basic analysis with Groq (no job matching)
+        result = analyze_resume_with_groq(file_path=tmp_path)
 
         # Clean up
         os.remove(tmp_path)
@@ -279,13 +279,13 @@ def extract_skills_only():
 
 @routes.route("/debug/test-analyzer", methods=["GET"])
 def test_analyzer():
-    """Debug endpoint to ensure Gemini analyzer works."""
+    """Debug endpoint to ensure Groq analyzer works."""
     try:
-        gemini_status = test_gemini_connection()
+        groq_status = test_groq_connection()
         return jsonify({
-            "status": "success" if gemini_status else "error",
-            "message": "Gemini analyzer is working" if gemini_status else "Gemini connection failed",
-            "gemini_connected": gemini_status
+            "status": "success" if groq_status else "error",
+            "message": "Groq analyzer is working" if groq_status else "Groq connection failed",
+            "groq_connected": groq_status
         })
     except Exception as e:
         return jsonify({
