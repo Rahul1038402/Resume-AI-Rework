@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import GlowingCards, { GlowingCard } from "@/components/ui/glowind-cards";
+import GlowingCards, { GlowingCard } from "@/components/ui/glowing-cards";
 import { useTheme } from "next-themes";
 import { motion, useInView, Variants } from "framer-motion";
 
