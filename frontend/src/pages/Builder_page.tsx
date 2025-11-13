@@ -427,41 +427,60 @@ export default function ResumeBuilder() {
         }
     };
 
-    const handleDownload = async () => {
-        const resumeEl = document.querySelector('.resume-content');
-        if (!resumeEl) return;
+const handleDownload = async () => {
+    const resumeEl = document.querySelector('.resume-content');
+    if (!resumeEl) return;
 
-        try {
-            setIsDownloading(true);
-            setDownloadProgress(0);
+    try {
+        setIsDownloading(true);
+        setDownloadProgress(0);
 
-            const htmlContent = resumeEl.outerHTML;
-            const cssContent = '';
+        // Get ALL computed styles from the element
+        const htmlContent = resumeEl.outerHTML;
+        
+        // Extract inline styles from the document
+        const styleSheets = Array.from(document.styleSheets);
+        let cssContent = '';
+        
+        styleSheets.forEach(sheet => {
+            try {
+                const rules = Array.from(sheet.cssRules || []);
+                rules.forEach(rule => {
+                    cssContent += rule.cssText + '\n';
+                });
+            } catch (e) {
+                console.warn('Could not access stylesheet:', e);
+            }
+        });
 
-            const firstName = resumeData.personalInfo.firstName || 'Resume';
-            const lastName = resumeData.personalInfo.lastName || '';
-            const fileName = `${firstName}_${lastName}_Resume.pdf`.replace(/\s+/g, '_');
+        console.log('HTML length:', htmlContent.length);
+        console.log('CSS length:', cssContent.length);
+        console.log('HTML preview:', htmlContent.substring(0, 500));
 
-            await generateResumePDF(
-                htmlContent,
-                cssContent,
-                layoutSettings,
-                fileName,
-                (progress) => setDownloadProgress(progress) // Progress callback
-            );
+        const firstName = resumeData.personalInfo.firstName || 'Resume';
+        const lastName = resumeData.personalInfo.lastName || '';
+        const fileName = `${firstName}_${lastName}_Resume.pdf`.replace(/\s+/g, '_');
 
-            setTimeout(() => {
-                setIsDownloading(false);
-                setDownloadProgress(0);
-            }, 500);
+        await generateResumePDF(
+            htmlContent,
+            cssContent,
+            layoutSettings,
+            fileName,
+            (progress) => setDownloadProgress(progress)
+        );
 
-        } catch (error) {
-            console.error('PDF download error:', error);
-            alert('Failed to generate PDF. Please try again.');
+        setTimeout(() => {
             setIsDownloading(false);
             setDownloadProgress(0);
-        }
-    };
+        }, 500);
+
+    } catch (error) {
+        console.error('PDF download error:', error);
+        alert('Failed to generate PDF. Please try again.');
+        setIsDownloading(false);
+        setDownloadProgress(0);
+    }
+};
 
     useEffect(() => {
         saveToLocalStorage(STORAGE_KEY_RESUME, resumeData);

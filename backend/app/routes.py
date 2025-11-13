@@ -311,6 +311,8 @@ def generate_pdf():
             return jsonify({'error': 'HTML content is required'}), 400
 
         logger.info("Starting PDF generation")
+        logger.info(f"HTML content length: {len(html_content)}")
+        logger.info(f"CSS content length: {len(css_content)}")
 
         # Extract layout settings with defaults
         margins = layout_settings.get('margins', {})
@@ -322,12 +324,13 @@ def generate_pdf():
         page_size = layout_settings.get('pageSize', 'A4')
         font_family = layout_settings.get('fontFamily', '"CMU Serif", "Computer Modern Serif", Georgia, serif')
 
-        # Construct full HTML document
+        # Construct full HTML document with embedded styles
         full_html = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
                 @import url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/fonts/serif.css');
                 
@@ -341,6 +344,7 @@ def generate_pdf():
                     font-family: {font_family};
                     background: white;
                     color: black;
+                    line-height: 1.5;
                 }}
                 
                 /* Force text-center to work */
@@ -378,17 +382,33 @@ def generate_pdf():
                 {css_content}
             </style>
         </head>
+        <body>
+            {html_content}
+        </body>
+        </html>
         """
+
+        # Log a sample of the HTML for debugging
+        logger.info(f"Full HTML preview (first 500 chars): {full_html[:500]}")
 
         # Generate PDF using Playwright
         logger.info("Launching Playwright browser")
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-setuid-sandbox']  # Important for Docker
+            )
             page = browser.new_page()
+            
+            # Set content and wait for it to load
             page.set_content(full_html, wait_until='networkidle')
             
             # Wait for fonts to load
-            page.wait_for_timeout(2000)
+            page.wait_for_timeout(3000)
+            
+            # Take a screenshot for debugging (optional)
+            # screenshot = page.screenshot()
+            # logger.info(f"Screenshot size: {len(screenshot)} bytes")
             
             logger.info("Generating PDF")
             pdf_bytes = page.pdf(
@@ -404,7 +424,7 @@ def generate_pdf():
             )
             
             browser.close()
-            logger.info("PDF generated successfully")
+            logger.info(f"PDF generated successfully, size: {len(pdf_bytes)} bytes")
 
         # Create in-memory file
         pdf_buffer = io.BytesIO(pdf_bytes)
