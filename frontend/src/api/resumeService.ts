@@ -323,7 +323,7 @@ export const getProjectHighlights = async (
   }
 };
 
-// ✅ Health check endpoint
+// Health check endpoint
 export const checkBackendHealth = async () => {
   try {
     const response = await fetch(`${API_URL}/`, {
@@ -338,7 +338,7 @@ export const checkBackendHealth = async () => {
   }
 };
 
-// ✅ Debug analyzer endpoint
+// Debug analyzer endpoint
 export const testAnalyzer = async () => {
   try {
     const response = await fetch(`${API_URL}/debug/test-analyzer`, {
@@ -350,5 +350,60 @@ export const testAnalyzer = async () => {
   } catch (error: any) {
     console.error("Analyzer test failed:", error);
     throw new Error(`Analyzer test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const generateResumePDF = async (
+  htmlContent: string,
+  cssContent: string,
+  layoutSettings: any,
+  fileName: string = 'resume.pdf',
+  onProgress?: (progress: number) => void
+): Promise<void> => {
+  try {
+    onProgress?.(10); // Started
+
+    const response = await fetch(`${API_URL}/generate-pdf`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        html: htmlContent,
+        css: cssContent,
+        layoutSettings: {
+          margins: layoutSettings.margins,
+          pageSize: layoutSettings.pageSize,
+          fontFamily: layoutSettings.fontFamily,
+        }
+      })
+    });
+
+    onProgress?.(50); // Response received
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate PDF');
+    }
+
+    onProgress?.(70); // Processing blob
+
+    const blob = await response.blob();
+    
+    onProgress?.(90); // Creating download
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    onProgress?.(100); // Complete
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    throw error;
   }
 };

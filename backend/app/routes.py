@@ -3,7 +3,8 @@ import traceback
 import logging
 import tempfile
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
+from playwright.sync_api import sync_playwright
 from werkzeug.exceptions import RequestEntityTooLarge
 from app.groq_analyzer import analyze_resume_with_groq, extract_text_from_pdf, extract_text_from_docx, test_groq_connection
 
@@ -293,3 +294,130 @@ def test_analyzer():
             "message": str(e),
             "traceback": traceback.format_exc()
         }), 500
+
+@routes.route("/generate-pdf", methods=["POST", "OPTIONS"])
+def generate_pdf():
+    """Generate PDF from HTML content using Playwright"""
+    if request.method == "OPTIONS":
+        return "", 200
+    
+    try:
+        data = request.get_json()
+        html_content = data.get('html')
+        css_content = data.get('css', '')
+        layout_settings = data.get('layoutSettings', {})
+        
+        if not html_content:
+            return jsonify({'error': 'HTML content is required'}), 400
+
+        logger.info("Starting PDF generation")
+
+        # Extract layout settings with defaults
+        margins = layout_settings.get('margins', {})
+        margin_top = f"{margins.get('top', 20)}px"
+        margin_right = f"{margins.get('right', 20)}px"
+        margin_bottom = f"{margins.get('bottom', 20)}px"
+        margin_left = f"{margins.get('left', 20)}px"
+        
+        page_size = layout_settings.get('pageSize', 'A4')
+        font_family = layout_settings.get('fontFamily', '"CMU Serif", "Computer Modern Serif", Georgia, serif')
+
+        # Construct full HTML document
+        full_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @import url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/fonts/serif.css');
+                
+                * {{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }}
+                
+                body {{
+                    font-family: {font_family};
+                    background: white;
+                    color: black;
+                }}
+                
+                /* Force text-center to work */
+                .text-center {{
+                    text-align: center !important;
+                }}
+                
+                /* Ensure flex and spacing work */
+                .flex {{
+                    display: flex !important;
+                }}
+                
+                .justify-between {{
+                    justify-content: space-between !important;
+                }}
+                
+                .items-baseline {{
+                    align-items: baseline !important;
+                }}
+                
+                .mb-3 {{
+                    margin-bottom: 0.75rem !important;
+                }}
+                
+                a {{
+                    color: rgb(0, 51, 153);
+                    text-decoration: none;
+                }}
+                
+                /* Preserve inline styles */
+                [style*="text-align: center"] {{
+                    text-align: center !important;
+                }}
+                
+                {css_content}
+            </style>
+        </head>
+        """
+
+        # Generate PDF using Playwright
+        logger.info("Launching Playwright browser")
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.set_content(full_html, wait_until='networkidle')
+            
+            # Wait for fonts to load
+            page.wait_for_timeout(2000)
+            
+            logger.info("Generating PDF")
+            pdf_bytes = page.pdf(
+                format=page_size,
+                print_background=True,
+                margin={
+                    'top': margin_top,
+                    'right': margin_right,
+                    'bottom': margin_bottom,
+                    'left': margin_left
+                },
+                prefer_css_page_size=False
+            )
+            
+            browser.close()
+            logger.info("PDF generated successfully")
+
+        # Create in-memory file
+        pdf_buffer = io.BytesIO(pdf_bytes)
+        pdf_buffer.seek(0)
+
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='resume.pdf'
+        )
+
+    except Exception as e:
+        logger.error(f"PDF generation error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': f'Failed to generate PDF: {str(e)}'}), 500

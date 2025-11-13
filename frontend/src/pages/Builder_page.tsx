@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit3, Download, User, Briefcase, GraduationCap, Award, Code, FolderOpen, Settings, Eye, X, Lightbulb, Check, RotateCcw, NotebookPen, FileText } from 'lucide-react';
+import { Plus, Trash2, Edit3, Download, Loader2, User, Briefcase, GraduationCap, Award, Code, FolderOpen, Settings, Eye, X, Lightbulb, Check, RotateCcw, NotebookPen, FileText } from 'lucide-react';
 import Header from '@/components/Header';
 import ShinyText from '@/components/ui/ShinyText';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ import {
     LayoutSettings,
     WarningConfig
 } from '../ResumeBuilder/types/index';
+import { generateResumePDF } from '@/api/resumeService';
 
 const STORAGE_KEY_RESUME = 'resumeData';
 const STORAGE_KEY_LAYOUT = 'layoutSettings';
@@ -92,6 +93,8 @@ export default function ResumeBuilder() {
     const [lastSaved, setLastSaved] = useState<string>('');
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
+    const [downloadProgress, setDownloadProgress] = useState(0);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [warningConfig] = useState<WarningConfig>({
         enabled: true,
         thresholds: {
@@ -424,91 +427,40 @@ export default function ResumeBuilder() {
         }
     };
 
-    const handleDownload = () => {
-        const resumeEl = document.querySelector(".resume-content");
+    const handleDownload = async () => {
+        const resumeEl = document.querySelector('.resume-content');
         if (!resumeEl) return;
 
-        const printStyle = document.createElement("style");
-        printStyle.textContent = `
-        @media print {
-            /* Hide all page content */
-            body * { 
-                visibility: hidden !important;
-            }
-            
-            /* Show only resume content */
-            .resume-content, 
-            .resume-content * { 
-                visibility: visible !important;
-            }
-            
-            /* Position and size */
-            .resume-content { 
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
-            }
-            
-            /* Force white background everywhere */
-            * {
-                background-color: white !important;
-                background: white !important;
-            }
-            
-            /* Remove any dark mode or colored backgrounds */
-            body,
-            html,
-            div,
-            .bg-white,
-            .bg-black,
-            .dark\\:bg-black,
-            .dark\\:bg-gray-900 {
-                background-color: white !important;
-                background: white !important;
-            }
-            
-            /* Prevent page breaks within sections */
-            .resume-content > div {
-                page-break-inside: avoid;
-            }
-            
-            h1, h2, h3 {
-                page-break-after: avoid;
-            }
-            
-            /* Force single page by hiding overflow */
-            html, body {
-                height: auto !important;
-                overflow: visible !important;
-            }
+        try {
+            setIsDownloading(true);
+            setDownloadProgress(0);
+
+            const htmlContent = resumeEl.outerHTML;
+            const cssContent = '';
+
+            const firstName = resumeData.personalInfo.firstName || 'Resume';
+            const lastName = resumeData.personalInfo.lastName || '';
+            const fileName = `${firstName}_${lastName}_Resume.pdf`.replace(/\s+/g, '_');
+
+            await generateResumePDF(
+                htmlContent,
+                cssContent,
+                layoutSettings,
+                fileName,
+                (progress) => setDownloadProgress(progress) // Progress callback
+            );
+
+            setTimeout(() => {
+                setIsDownloading(false);
+                setDownloadProgress(0);
+            }, 500);
+
+        } catch (error) {
+            console.error('PDF download error:', error);
+            alert('Failed to generate PDF. Please try again.');
+            setIsDownloading(false);
+            setDownloadProgress(0);
         }
-    `;
-        document.head.appendChild(printStyle);
-
-        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const msg = isMobile
-            ? `Note: On mobile, the print dialog may not show page range options.\nIf you see extra blank pages, save as PDF first, then share only page 1.`
-            : `Tip: In the print dialog:\n1. Go to "Pages"\n2. Select "Custom" and enter "1""\n3. This will print only the first page`;
-
-        const proceed = window.confirm(`${msg}\n\nOpen the print dialog now?`);
-        if (!proceed) {
-            document.head.removeChild(printStyle);
-            return;
-        }
-
-        const cleanup = () => {
-            try {
-                document.head.removeChild(printStyle);
-            } catch (_) { }
-            window.removeEventListener("afterprint", cleanup);
-        };
-
-        window.addEventListener("afterprint", cleanup);
-        window.print();
     };
 
     useEffect(() => {
@@ -1332,16 +1284,17 @@ export default function ResumeBuilder() {
         </div>
     );
 
-const renderResumePreview = () => (
-    <div className="resume-content" style={{
-        fontFamily: layoutSettings.fontFamily,
-        height: '10.7in',
-        wordWrap: 'break-word',
-        overflowWrap: 'break-word',
-        maxWidth: '100%',
-    }}>
+    const renderResumePreview = () => (
+        <div className="resume-content" style={{
+            fontFamily: layoutSettings.fontFamily,
+            height: '10.7in',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            maxWidth: '100%',
+        }}>
             {/* Header */}
-            <div className="text-center mb-3" style={{
+            <div className="mb-3" style={{
+                textAlign: 'center',
                 paddingBottom: '10pt',
                 marginBottom: '10pt'
             }}>
@@ -1800,15 +1753,48 @@ const renderResumePreview = () => (
                             <div className="flex gap-2 flex-wrap justify-center">
                                 <button
                                     onClick={handleDownload}
-                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white flex items-center gap-2 transition-colors duration-200"
+                                    disabled={isDownloading}
+                                    className="relative px-4 py-2 text-sm font-medium rounded-lg bg-green-500 dark:bg-gray-800 text-white flex items-center gap-2 transition-colors duration-200 overflow-hidden disabled:opacity-80"
                                 >
-                                    <Download size={16} />
-                                    <ShinyText text="Download HTML PDF" disabled={false} speed={3} className="custom-class" />
+                                    {/* Progress bar background */}
+                                    <div
+                                        className="absolute inset-0 bg-green-700 dark:bg-gray-950 transition-all duration-300 ease-out"
+                                        style={{
+                                            width: `${downloadProgress}%`,
+                                            left: 0
+                                        }}
+                                    />
+
+                                    {/* Button content */}
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        {isDownloading ? (
+                                            <>
+                                                <Loader2 size={16} className="animate-spin" />
+                                                <ShinyText
+                                                    text={`Downloading... ${downloadProgress}%`}
+                                                    disabled={false}
+                                                    speed={3}
+                                                    className="custom-class"
+                                                />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download size={16} />
+                                                <ShinyText
+                                                    text="Download PDF"
+                                                    disabled={false}
+                                                    speed={3}
+                                                    className="custom-class"
+                                                />
+                                            </>
+                                        )}
+                                    </span>
                                 </button>
 
                                 <button
                                     onClick={resetAllData}
-                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center gap-2 transition-colors duration-200"
+                                    disabled={isDownloading}
+                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center gap-2 transition-colors duration-200 disabled:opacity-50"
                                 >
                                     <RotateCcw size={16} />
                                     Reset
@@ -1877,7 +1863,7 @@ const renderResumePreview = () => (
                             </div>
 
                             {/* Preview Panel */}
-<div className="bg-gray-200 dark:bg-black rounded-lg shadow-lg p-6 overflow-x-auto custom:overflow-y-auto max-h-[calc(100vh-200px)] w-full custom:w-[620pt]">
+                            <div className="bg-gray-200 dark:bg-black rounded-lg shadow-lg p-6 overflow-x-auto custom:overflow-y-auto max-h-[calc(100vh-200px)] w-full custom:w-[620pt]">
                                 <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                                     <h2 className="text-xl font-semibold flex items-center gap-2">
                                         <Eye size={20} />
@@ -1905,21 +1891,21 @@ const renderResumePreview = () => (
                                     )}
                                 </div>
 
-<div
-    id="resume-preview"
-    style={{
-        fontSize: `${layoutSettings.fontSize}px`,
-        lineHeight: layoutSettings.lineHeight,
-        fontFamily: layoutSettings.fontFamily,
-        padding: `${layoutSettings.margins.top}px ${layoutSettings.margins.right}px ${layoutSettings.margins.bottom}px ${layoutSettings.margins.left}px`,
-        wordWrap: 'break-word',
-        overflowWrap: 'break-word',
-        maxWidth: '100%',
-    }}
-    className="resume-preview bg-white text-black"
->
-    {renderResumePreview()}
-</div>
+                                <div
+                                    id="resume-preview"
+                                    style={{
+                                        fontSize: `${layoutSettings.fontSize}px`,
+                                        lineHeight: layoutSettings.lineHeight,
+                                        fontFamily: layoutSettings.fontFamily,
+                                        padding: `${layoutSettings.margins.top}px ${layoutSettings.margins.right}px ${layoutSettings.margins.bottom}px ${layoutSettings.margins.left}px`,
+                                        wordWrap: 'break-word',
+                                        overflowWrap: 'break-word',
+                                        maxWidth: '100%',
+                                    }}
+                                    className="resume-preview bg-white text-black"
+                                >
+                                    {renderResumePreview()}
+                                </div>
                             </div>
                         </div>
                     ) : activeTab === 'layout' ? (
