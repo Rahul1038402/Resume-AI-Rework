@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
   { name: "AI Resume Analyzer", href: "/analyzer" },
   { name: "Job Tracker", href: "/tracker" },
   { name: "About Us", href: "/about" },
+  { name: "ATS Comparison", href: "/ats"},
 ];
 
 const Header = () => {
@@ -101,34 +102,38 @@ const Header = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
-{/* Left: Logo */}
-<div className="flex items-center gap-2">
-  <Link to="/" className="flex items-center gap-2 relative z-50">
-    <Logo className="w-8 h-8 sm:w-10 sm:h-10" />
-    <GradientText
-      colors={["#9BBD67", "#26C168", "#92C8C0", "#4079ff", "#E3F1E8"]}
-      animationSpeed={10}
-      showBorder={false}
-      className="text-2xl font-bold"
-    >
-      ResumeAI
-    </GradientText>
-  </Link>
-</div>
+          {/* Left: Logo */}
+          <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2 relative z-50">
+              <Logo className="w-8 h-8 sm:w-10 sm:h-10" />
+              <GradientText
+                colors={["#9BBD67", "#26C168", "#92C8C0", "#4079ff", "#E3F1E8"]}
+                animationSpeed={10}
+                showBorder={false}
+                className="text-2xl font-bold"
+              >
+                ResumeAI
+              </GradientText>
+            </Link>
+          </div>
 
           {/* Center: Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+          <nav className="hidden md:flex items-center gap-8">
             {navItems
               .filter((item) => {
                 if (location.pathname === "/" && item.href === "/") return false;
-                if (location.pathname !== "/" && item.href === "/about") return false;
                 return true;
               })
               .map((item, index) => (
                 <Link
                   key={index}
                   to={item.href}
-                  className="text-gray-600 hover:text-resume-primary transition-colors duration-200 dark:text-gray-300 dark:hover:text-white whitespace-nowrap"
+                  className={cn(
+                    "transition-colors duration-200",
+                    location.pathname === item.href
+                      ? "text-resume-primary dark:text-resume-secondary border-b border-resume-primary dark:border-resume-secondary"
+                      : "text-gray-600 hover:text-resume-primary dark:text-gray-300 dark:hover:text-white"
+                  )}
                 >
                   {item.name}
                 </Link>
