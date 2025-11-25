@@ -16,10 +16,10 @@ type NavItem = {
 const navItems: NavItem[] = [
   { name: "Home", href: "/" },
   { name: "Resume Builder", href: "/builder" },
-  { name: "AI Resume Analyzer", href: "/analyzer" },
+  { name: "Resume Analyzer", href: "/analyzer" },
   { name: "Job Tracker", href: "/tracker" },
-  { name: "About Us", href: "/about" },
   { name: "ATS Comparison", href: "/ats"},
+  { name: "About Us", href: "/about" },
 ];
 
 const Header = () => {
