@@ -22,6 +22,7 @@ const JobTracker = () => {
     const searchTimeoutRef = useRef(null);
     const statusRef = useRef<HTMLDivElement>(null);
     const sortRef = useRef<HTMLDivElement>(null);
+    const [isPageLoading, setIsPageLoading] = useState(true);
 
 
     const [formData, setFormData] = useState({
@@ -63,19 +64,28 @@ const JobTracker = () => {
         { value: 'role_desc', label: 'Job Role (Z-A)' }
     ];
 
-useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (statusRef.current && !statusRef.current.contains(event.target as Node)) {
-      setShowStatusDropdown(false);
-    }
-    if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
-      setShowSortDropdown(false);
-    }
-  };
+    // Handle initial page load
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsPageLoading(false);
+        }, 1000);
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, []);
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (statusRef.current && !statusRef.current.contains(event.target as Node)) {
+                setShowStatusDropdown(false);
+            }
+            if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+                setShowSortDropdown(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
 
 
@@ -351,11 +361,16 @@ useEffect(() => {
         return <Icon className={`w-5 h-5 ${statusOption?.color || 'text-muted-foreground'}`} />;
     };
 
-    if (loading) {
+    // Early return for loading state
+    if (isPageLoading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-xl text-foreground">Loading...</div>
-            </div>
+            <Layout>
+                <div className="container mx-auto">
+                    <div className="flex items-center justify-center h-screen">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resume-primary dark:border-resume-secondary"></div>
+                    </div>
+                </div>
+            </Layout>
         );
     }
 

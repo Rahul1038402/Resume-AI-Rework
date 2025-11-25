@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import Layout from "@/components/Layout";
 import ResumeUploader from "@/components/ResumeUploader";
 import JobSelector from "@/components/JobSelector";
@@ -32,6 +32,17 @@ const Analyzer = () => {
   const [showGamePrompt, setShowGamePrompt] = useState(false);
   const [showGame, setShowGame] = useState(false);
   const [analysisState, setAnalysisState] = useState('idle'); // 'idle', 'analyzing', 'completed', 'error'
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  // Handle initial page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleFileSelected = (selectedFile) => {
     setFile(selectedFile);
@@ -61,18 +72,45 @@ const Analyzer = () => {
 
     setIsAnalyzing(true);
     setError(null);
+    setLoadingProgress(0);
 
     if (playGame) {
       setShowGame(true);
       setAnalysisState('analyzing');
     }
 
+    // Simulate loading progress over 2-3 seconds
+    const loadingDuration = 2500; // 2.5 seconds
+    const intervalTime = 50; // Update every 50ms
+    const steps = loadingDuration / intervalTime;
+    let currentStep = 0;
+
+    const progressInterval = setInterval(() => {
+      currentStep++;
+      const progress = Math.min((currentStep / steps) * 95, 95);
+      setLoadingProgress(progress);
+      
+      if (currentStep >= steps) {
+        clearInterval(progressInterval);
+      }
+    }, intervalTime);
+
+    // Wait for the minimum loading time
+    await new Promise(resolve => setTimeout(resolve, loadingDuration));
+
     try {
       const analysisResult = await analyzeResume(file, targetJob, [], jobDescription);
+      clearInterval(progressInterval);
+      setLoadingProgress(100);
+      
+      // Small delay to show 100% completion
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       setResult(analysisResult);
       setAnalysisState('completed');
       toast.success("Analysis completed successfully!");
     } catch (err) {
+      clearInterval(progressInterval);
       console.error("Analysis error:", err);
       const errorMessage = err instanceof Error ? err.message : "Analysis failed";
       setError(errorMessage);
@@ -80,6 +118,7 @@ const Analyzer = () => {
       toast.error(errorMessage);
     } finally {
       setIsAnalyzing(false);
+      setLoadingProgress(0);
       // Don't close the game automatically if not playing game
       if (!playGame) {
         setAnalysisState('idle');
@@ -95,6 +134,19 @@ const Analyzer = () => {
   const openRecommendedFormat = () => {
     window.open('/recommended-resume-format.html', '_blank');
   };
+
+  // Early return for loading state
+  if (isPageLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto">
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resume-primary dark:border-resume-secondary"></div>
+      </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -117,7 +169,7 @@ const Analyzer = () => {
             </p>
           </div>
 
-          {/* Resume Builder Highlight */}
+          {/* Resume Builder Highlight 
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
             <div className="flex items-start gap-3">
               <FileText className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
@@ -151,7 +203,7 @@ const Analyzer = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="space-y-6">
             <div className="flex flex-col">
@@ -179,6 +231,20 @@ const Analyzer = () => {
                 We'll analyze your resume against {targetJob || "general"} requirements. <br/>
               </p>
 
+              {/* Loading Progress Bar */}
+              {isAnalyzing && (
+                <div className="mt-4">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                    <div 
+                      className="bg-resume-primary dark:bg-resume-secondary h-2.5 rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${loadingProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    {loadingProgress < 95 ? "Preparing analysis..." : "Finalizing results..."}
+                  </p>
+                </div>
+              )}
             </Card>
 
             <ResumeResults
