@@ -1,5 +1,4 @@
 import { Eye, Lightbulb } from 'lucide-react';
-import GradientText from '@/components/ui/GradientText';
 import { ResumePreview } from './ResumePreview';
 import { ResumeData, LayoutSettings } from '../../types';
 
