@@ -11,7 +11,7 @@ import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import JobTracker from "./pages/JobTracker";
 import AboutMe from "./pages/AboutMe";
-import ATSComparisonPage from "./pages/ATSComparisonPage";
+import ATSComparisonPage from "./ATSComp/ATSComparisonPage";
 import ResumeBuilder from "./ResumeBuilder";
 
 const queryClient = new QueryClient();
