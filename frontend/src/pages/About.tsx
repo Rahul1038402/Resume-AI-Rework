@@ -1,6 +1,5 @@
-import Layout from "@/components/Layout";
+import Layout from "@/components/common/Layout";
 import GradientText from "@/components/ui/GradientText";
-import { useState } from "react";
 import GlowingCards, { GlowingCard } from "@/components/ui/glowing-cards";
 import { Link } from "react-router-dom";
 

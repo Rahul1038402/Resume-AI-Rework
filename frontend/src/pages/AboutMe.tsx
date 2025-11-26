@@ -1,5 +1,5 @@
 import { Coffee } from "lucide-react";
-import Layout from "@/components/Layout";
+import Layout from "@/components/common/Layout";
 import IconMarquee from "@/components/ui/linksmarquee";
 
 export default function AboutMe() {
