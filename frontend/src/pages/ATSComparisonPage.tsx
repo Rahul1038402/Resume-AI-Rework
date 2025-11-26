@@ -1,11 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ResumeUploader from "@/components/ResumeUploader";
 import ATSComparisonView from "@/components/ATSComparisonView";
-import Layout from "@/components/Layout";
+import Layout from "@/components/common/Layout";
 import GradientText from "@/components/ui/GradientText";
+import Loader from "@/components/common/Loader";
 
 const ATSComparisonPage = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  // Handle initial page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Early return for loading state
+  if (isPageLoading) {
+    return (
+      <Loader />
+    );
+  }
 
   return (
     <Layout>
