@@ -118,7 +118,7 @@ const Header = () => {
           </div>
 
           {/* Center: Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden custom:flex items-center gap-8">
             {navItems
               .filter((item) => {
                 if (location.pathname === "/" && item.href === "/") return false;
@@ -141,7 +141,7 @@ const Header = () => {
           </nav>
 
           {/* Right: Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden custom:flex items-center gap-3">
             {/* Theme Toggle */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -211,7 +211,7 @@ const Header = () => {
           </div>
 
           {/* Right: Mobile Toggle Button */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="custom:hidden flex items-center gap-2">
             {/* Theme Toggle Mobile */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
