@@ -9,7 +9,7 @@ import { useResumeData } from './hooks/useResumeData';
 import { useLayoutSettings } from './hooks/useLayoutSettings';
 import { useResumeValidation } from './hooks/useResumeValidation';
 import { ActiveTab, ActiveSection } from './types';
-import { generateResumePDF } from '@/api/resumeService';
+import { generateResumePDF } from '@/ResumeAnalyzer/api/resumeService';
 import '../index.css';
 
 const STORAGE_KEY_LAST_SAVED = 'lastSaved';
