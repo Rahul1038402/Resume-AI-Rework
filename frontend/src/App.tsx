@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
-import Analyzer from "./pages/Analyzer";
+import Analyzer from "./ResumeAnalyzer/index";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import JobTracker from "./pages/JobTracker";
