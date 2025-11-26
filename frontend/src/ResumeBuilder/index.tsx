@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Header from '@/components/Header';
+import Header from '@/components/common/Header';
 import EditorPanel from './components/EditorPanel';
 import PreviewPanel from './components/PreviewPanel';
 import { TopControls } from './components/TopControls';
@@ -11,6 +11,7 @@ import { useResumeValidation } from './hooks/useResumeValidation';
 import { ActiveTab, ActiveSection } from './types';
 import { generateResumePDF } from '@/ResumeAnalyzer/api/resumeService';
 import '../index.css';
+import Loader from '@/components/common/Loader';
 
 const STORAGE_KEY_LAST_SAVED = 'lastSaved';
 
@@ -174,14 +175,7 @@ function ResumeBuilder() {
     // Early return for loading state
     if (isPageLoading) {
         return (
-            <>
-                <Header />
-                <div className="container mx-auto">
-                    <div className="flex items-center justify-center h-screen">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resume-primary dark:border-resume-secondary"></div>
-                    </div>
-                </div>
-            </>
+            <Loader/>
         );
     }
 

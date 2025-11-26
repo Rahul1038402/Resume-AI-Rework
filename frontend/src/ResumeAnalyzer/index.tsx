@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, useEffect } from "react";
-import Layout from "@/components/Layout";
+import Layout from "@/components/common/Layout";
 import ResumeUploader from "@/components/ResumeUploader";
 import JobSelector from "@/ResumeAnalyzer/component/JobSelector";
 import ResumeResults from "@/ResumeAnalyzer/component/ResumeResults";
@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { analyzeResume } from "@/ResumeAnalyzer/api/resumeService";
 import { toast } from "sonner";
-import { FileText, Loader2, Settings, Upload, X, Play, Pause } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import GradientText from "@/components/ui/GradientText";
-import { Link } from "react-router-dom";
-const GalaxyAttackGame = lazy(() => import("@/components/GalaxyAttack"));
+import Loader from "@/components/common/Loader";
+{/* const GalaxyAttackGame = lazy(() => import("@/components/GalaxyAttack")); */}
 
 //Gaming ke lazy loading and reduce chunk size
 const GameLoadingSkeleton = () => (
@@ -138,13 +138,7 @@ const Analyzer = () => {
   // Early return for loading state
   if (isPageLoading) {
     return (
-      <Layout>
-        <div className="container mx-auto">
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resume-primary dark:border-resume-secondary"></div>
-      </div>
-        </div>
-      </Layout>
+      <Loader/>
     );
   }
 

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, LogOut, Calendar, Building, FileText, CheckCircle, Clock, XCircle, Award, Globe, Search, Filter, TrendingUp, Sparkles } from 'lucide-react';
-import Layout from '@/components/Layout';
+import { Plus, Calendar, Building, FileText, Clock, XCircle, Award, Globe, Search, Sparkles } from 'lucide-react';
+import Layout from '@/components/common/Layout';
 import GradientText from '@/components/ui/GradientText';
 import '../index.css'
 import { supabase } from '../lib/supabaseClient'
+import Loader from '@/components/common/Loader';
 
 const JobTracker = () => {
     const [user, setUser] = useState(null);
@@ -23,7 +24,6 @@ const JobTracker = () => {
     const statusRef = useRef<HTMLDivElement>(null);
     const sortRef = useRef<HTMLDivElement>(null);
     const [isPageLoading, setIsPageLoading] = useState(true);
-
 
     const [formData, setFormData] = useState({
         job_role: '',
@@ -86,8 +86,6 @@ const JobTracker = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
-
 
     useEffect(() => {
         checkUser();
@@ -355,22 +353,10 @@ const JobTracker = () => {
         setDraggedItem(null);
     };
 
-    const getStatusIcon = (status) => {
-        const statusOption = statusOptions.find(opt => opt.value === status);
-        const Icon = statusOption?.icon || Clock;
-        return <Icon className={`w-5 h-5 ${statusOption?.color || 'text-muted-foreground'}`} />;
-    };
-
     // Early return for loading state
     if (isPageLoading) {
         return (
-            <Layout>
-                <div className="container mx-auto">
-                    <div className="flex items-center justify-center h-screen">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resume-primary dark:border-resume-secondary"></div>
-                    </div>
-                </div>
-            </Layout>
+            <Loader />
         );
     }
 
