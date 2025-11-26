@@ -1,4 +1,4 @@
-import Layout from "@/components/Layout";
+import Layout from "@/components/common/Layout";
 import NumberedFeatureCards from "../components/index/CardComponents";
 import PainPointsSection from "../components/index/PainPointsSection";
 import HeroSection from "@/components/index/HeroSection";
