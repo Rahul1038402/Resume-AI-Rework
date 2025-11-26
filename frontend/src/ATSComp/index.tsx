@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ResumeUploader from "@/components/ResumeUploader";
-import ATSComparisonView from "@/ATSComp/ATSComparisonView";
+import ATSComparisonView from "@/ATSComp/components/ATSComparisonView";
 import Layout from "@/components/common/Layout";
 import GradientText from "@/components/ui/GradientText";
 import Loader from "@/components/common/Loader";
