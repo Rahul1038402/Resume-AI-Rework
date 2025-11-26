@@ -7,12 +7,12 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./LandingPage/index";
 import Analyzer from "./ResumeAnalyzer/index";
-import About from "./pages/About";
-import NotFound from "./pages/NotFound";
-import JobTracker from "./pages/JobTracker";
-import AboutMe from "./pages/AboutMe";
-import ATSComparisonPage from "./ATSComp/ATSComparisonPage";
-import ResumeBuilder from "./ResumeBuilder";
+import About from "./AboutUs/index";
+import NotFound from "./NotFound/index";
+import JobTracker from "./JobTracker/index";
+import AboutMe from "./AboutMe/index";
+import ATSComparisonPage from "./ATSComp/index";
+import ResumeBuilder from "./ResumeBuilder/index";
 
 const queryClient = new QueryClient();
 
