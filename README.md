@@ -26,7 +26,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 - **Customizable Sections**: Highlight your strengths and tailor content
 - **Download Ready**: Export ready-to-use PDF resumes
 
-### 📋 Application Tracker
+### 📋 Application Tracker (Working on to automate the working)
 - **Centralized Management**: Store and organize all job applications
 - **Comprehensive Details**: Track company, role, platform, resume used, dates, and status
 - **Progress Monitoring**: Keep tabs on your job search progress
