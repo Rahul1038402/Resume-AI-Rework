@@ -18,7 +18,7 @@ const navItems: NavItem[] = [
   { name: "Resume Builder", href: "/builder" },
   { name: "Resume Analyzer", href: "/analyzer" },
   { name: "Job Tracker", href: "/tracker" },
-  { name: "ATS Comparison", href: "/ats"},
+  /*{ name: "ATS Comparison", href: "/ats"},*/
   { name: "About Us", href: "/about" },
 ];
 

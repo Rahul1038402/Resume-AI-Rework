@@ -16,7 +16,7 @@ const About = lazy(() => import("./AboutUs/index"));
 const NotFound = lazy(() => import("./NotFound/index"));
 const JobTracker = lazy(() => import("./JobTracker/index"));
 const AboutMe = lazy(() => import("./AboutMe/index"));
-const ATSComparisonPage = lazy(() => import("./ATSComp/index"));
+{/*const ATSComparisonPage = lazy(() => import("./ATSComp/index"));*/}
 const ResumeBuilder = lazy(() => import("./ResumeBuilder/index"));
 
 const queryClient = new QueryClient();
@@ -38,7 +38,7 @@ const App = () => {
                 <Route path="/aboutme" element={<AboutMe />} />
                 <Route path="/builder" element={<ResumeBuilder />} />
                 <Route path="/tracker" element={<JobTracker />} />
-                <Route path="/ats" element={<ATSComparisonPage />} />
+                {/*<Route path="/ats" element={<ATSComparisonPage />} /> */}
                 {/* Any other route except all above are redirected here */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
