@@ -196,63 +196,65 @@ function ResumeBuilder() {
                 />
 
                 {/* Main Content Area */}
-                <div className="flex-1">
-                    <SectionNavigation
-                        activeSection={activeSection}
-                        setActiveSection={setActiveSection}
-                    />
-                    {activeTab === 'editor' ? (
-                        <div className="flex flex-col custom:flex-row justify-center items-center gap-4 pb-4 px-4 pt-2">
-                            {/* Editor Panel */}
-                            <EditorPanel
-                                activeSection={activeSection}
-                                setActiveSection={setActiveSection}
-                                resumeData={resumeData}
-                                updatePersonalInfo={updatePersonalInfo}
-                                updateSummary={updateSummary}
-                                addSkillCategory={addSkillCategory}
-                                updateSkillCategory={updateSkillCategory}
-                                deleteSkillCategory={deleteSkillCategory}
-                                replaceAllSkillCategories={replaceAllSkillCategories}
-                                addProject={addProject}
-                                updateProject={updateProject}
-                                deleteProject={deleteProject}
-                                addProjectDescription={addProjectDescription}
-                                updateProjectDescription={updateProjectDescription}
-                                deleteProjectDescription={deleteProjectDescription}
-                                addExperience={addExperience}
-                                updateExperience={updateExperience}
-                                deleteExperience={deleteExperience}
-                                addExperienceAchievement={addExperienceAchievement}
-                                updateExperienceAchievement={updateExperienceAchievement}
-                                deleteExperienceAchievement={deleteExperienceAchievement}
-                                addEducation={addEducation}
-                                updateEducation={updateEducation}
-                                deleteEducation={deleteEducation}
-                                addCertification={addCertification}
-                                updateCertification={updateCertification}
-                                deleteCertification={deleteCertification}
-                            />
+<div className="flex-1">
+    <SectionNavigation
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+    />
 
-                            {/* Preview Panel */}
-                            <PreviewPanel
-                                resumeData={resumeData}
-                                layoutSettings={layoutSettings}
-                                warnings={warnings}
-                                setIsSuggestionsOpen={setIsSuggestionsOpen}
-                                lastSaved={lastSaved}
-                            />
-                        </div>
-                    ) : activeTab === 'layout' ? (
-                        <div className="p-6">
-                            <LayoutSettingsComponent
-                                layoutSettings={layoutSettings}
-                                updateLayoutSettings={updateLayoutSettings}
-                                updateMargin={updateMargin}
-                            />
-                        </div>
-                    ) : null}
-                </div>
+    <div className="flex flex-col custom:flex-row justify-center items-start gap-4 pb-4 px-4 pt-2">
+        {/* Left Panel: Editor OR Layout */}
+        {activeTab === 'editor' && (
+            <EditorPanel
+                activeSection={activeSection}
+                setActiveSection={setActiveSection}
+                resumeData={resumeData}
+                updatePersonalInfo={updatePersonalInfo}
+                updateSummary={updateSummary}
+                addSkillCategory={addSkillCategory}
+                updateSkillCategory={updateSkillCategory}
+                deleteSkillCategory={deleteSkillCategory}
+                replaceAllSkillCategories={replaceAllSkillCategories}
+                addProject={addProject}
+                updateProject={updateProject}
+                deleteProject={deleteProject}
+                addProjectDescription={addProjectDescription}
+                updateProjectDescription={updateProjectDescription}
+                deleteProjectDescription={deleteProjectDescription}
+                addExperience={addExperience}
+                updateExperience={updateExperience}
+                deleteExperience={deleteExperience}
+                addExperienceAchievement={addExperienceAchievement}
+                updateExperienceAchievement={updateExperienceAchievement}
+                deleteExperienceAchievement={deleteExperienceAchievement}
+                addEducation={addEducation}
+                updateEducation={updateEducation}
+                deleteEducation={deleteEducation}
+                addCertification={addCertification}
+                updateCertification={updateCertification}
+                deleteCertification={deleteCertification}
+            />
+        )}
+
+        {activeTab === 'layout' && (
+            <LayoutSettingsComponent
+                layoutSettings={layoutSettings}
+                updateLayoutSettings={updateLayoutSettings}
+                updateMargin={updateMargin}
+            />
+        )}
+
+        {/* Right Panel: Preview (always visible) */}
+        <PreviewPanel
+            resumeData={resumeData}
+            layoutSettings={layoutSettings}
+            warnings={warnings}
+            setIsSuggestionsOpen={setIsSuggestionsOpen}
+            lastSaved={lastSaved}
+        />
+    </div>
+</div>
+
 
                 {/* Suggestions Overlay */}
                 <SuggestionsOverlay

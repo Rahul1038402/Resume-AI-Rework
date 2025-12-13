@@ -22,29 +22,34 @@ const PreviewPanel = ({
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scaleRef = useRef<HTMLDivElement>(null);
 
-    // 🔥 Auto-scale the A4 page so it fits the available width
+    // Page size dimensions
+    const pageDimensions = layoutSettings.pageSize === 'Letter' 
+        ? { width: '8.5in', height: '11in', widthPx: 816 }  // Letter: 8.5" × 11"
+        : { width: '210mm', height: '297mm', widthPx: 793.7 }; // A4: 210mm × 297mm
+
+    // Auto-scale the page so it fits the available width
     useEffect(() => {
-        const scaleA4 = () => {
+        const scalePage = () => {
             if (!wrapperRef.current || !scaleRef.current) return;
 
             const wrapperWidth = wrapperRef.current.clientWidth;
-            const A4_WIDTH_PX = 793.7; // 210mm → px @ 96dpi
+            const pageWidthPx = pageDimensions.widthPx;
 
-            const scale = Math.min(wrapperWidth / A4_WIDTH_PX, 1);
+            const scale = Math.min(wrapperWidth / pageWidthPx, 1);
             scaleRef.current.style.transform = `scale(${scale})`;
         };
 
-        scaleA4();
-        window.addEventListener("resize", scaleA4);
-        return () => window.removeEventListener("resize", scaleA4);
-    }, []);
+        scalePage();
+        window.addEventListener("resize", scalePage);
+        return () => window.removeEventListener("resize", scalePage);
+    }, [pageDimensions.widthPx]);
 
     return (
         <div className="bg-gray-200 dark:bg-black rounded-lg shadow-lg p-6 overflow-auto max-h-[calc(100vh-200px)] w-full custom:w-[620pt]">
 
             {/* Header */}
             <div className="mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center0">
+                <div className="flex justify-between items-center">
                     <div className="flex flex-col">
                         <h2 className="text-xl text-resume-primary dark:text-resume-secondary font-semibold flex items-center gap-2">
                             <Eye size={20} />
@@ -72,22 +77,22 @@ const PreviewPanel = ({
                 )}
             </div>
 
-            {/* 🟦 Wrapper that scales */}
+            {/* Wrapper that scales */}
             <div
                 ref={wrapperRef}
                 className="w-full flex justify-center"
             >
-                {/* 🟧 Scale transform container */}
+                {/* Scale transform container */}
                 <div
                     ref={scaleRef}
                     style={{ transformOrigin: "top center" }}
                 >
-                    {/* 🟩 A4 page (fixed size, never changes) */}
+                    {/* Page with dynamic dimensions */}
                     <div
                         id="resume-preview"
                         style={{
-                            width: "210mm",
-                            height: "297mm",
+                            width: pageDimensions.width,
+                            height: pageDimensions.height,
                             overflow: "hidden",
                             background: "white",
                             fontSize: `${layoutSettings.fontSize}px`,

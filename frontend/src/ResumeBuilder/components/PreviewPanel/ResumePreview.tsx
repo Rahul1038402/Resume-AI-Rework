@@ -6,6 +6,19 @@ interface ResumePreviewProps {
 }
 
 export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps) => {
+    // Calculate relative sizes based on the base font size
+    const base = layoutSettings.fontSize; // Base font size in px
+    
+    const sizes = {
+        name: base * 2.18,        // 24pt equivalent when base is 11px
+        jobTitle: base * 1.27,    // 14pt equivalent
+        sectionHeader: base * 1.31, // 14.4pt equivalent
+        subsection: base * 1.09,   // 12pt equivalent
+        body: base * 0.91,        // 10pt equivalent
+        techStack: base * 0.82,   // 9pt equivalent
+        education: base * 1.0     // 11pt equivalent
+    };
+
     return (
         <div className="resume-content" style={{
             fontFamily: layoutSettings.fontFamily,
@@ -21,7 +34,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                 marginBottom: '10pt'
             }}>
                 <h1 className="mb-0" style={{
-                    fontSize: '24pt',
+                    fontSize: `${sizes.name}px`,
                     fontWeight: 'normal',
                     letterSpacing: '0.02em',
                 }}>
@@ -29,7 +42,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                 </h1>
                 {resumeData.personalInfo.targetJobTitle && (
                     <p style={{
-                        fontSize: '14pt',
+                        fontSize: `${sizes.jobTitle}px`,
                         fontWeight: 'normal',
                         marginBottom: '2pt'
                     }}>
@@ -40,7 +53,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                 {/* Social Links on separate line */}
                 {(resumeData.personalInfo.githubUrl || resumeData.personalInfo.linkedinUrl) && (
                     <div style={{
-                        fontSize: '10pt',
+                        fontSize: `${sizes.body}px`,
                         fontWeight: 'normal',
                     }}>
                         {resumeData.personalInfo.githubUrl && (
@@ -61,7 +74,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
 
                 {/* Contact info on next line */}
                 <div style={{
-                    fontSize: '10pt',
+                    fontSize: `${sizes.body}px`,
                     fontWeight: 'normal',
                     color: 'rgb(0, 51, 153)',
                 }}>
@@ -83,7 +96,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
             {resumeData.summary && (
                 <div style={{ marginBottom: '10pt' }}>
                     <h2 style={{
-                        fontSize: '14.4pt',
+                        fontSize: `${sizes.sectionHeader}px`,
                         textTransform: 'uppercase',
                         textAlign: 'left',
                         fontWeight: 'normal',
@@ -96,7 +109,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                     </h2>
                     <p style={{
                         textAlign: 'justify',
-                        fontSize: '10pt',
+                        fontSize: `${sizes.body}px`,
                         lineHeight: '1.3',
                         fontWeight: 'normal',
                         marginTop: '6pt',
@@ -117,7 +130,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                 return (
                     <div style={{ marginBottom: '10pt' }}>
                         <h2 style={{
-                            fontSize: '14.4pt',
+                            fontSize: `${sizes.sectionHeader}px`,
                             textTransform: 'uppercase',
                             textAlign: 'left',
                             fontWeight: 'normal',
@@ -128,7 +141,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                         }}>
                             Skills
                         </h2>
-                        <div style={{ fontSize: '10pt', marginTop: '6pt' }}>
+                        <div style={{ fontSize: `${sizes.body}px`, marginTop: '6pt' }}>
                             {resumeData.skills.categories.map((category) => (
                                 <div key={category.id} style={{
                                     marginBottom: '2px',
@@ -156,20 +169,18 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
 
             {/* Experience */}
             {resumeData.experience.length > 0 && (() => {
-                // Filter out empty experiences
                 const validExperiences = resumeData.experience.filter(exp =>
                     exp.position.trim() ||
                     exp.company.trim() ||
                     exp.achievements.some(a => a.trim())
                 );
 
-                // Only render if there are valid experiences
                 if (validExperiences.length === 0) return null;
 
                 return (
                     <div style={{ marginBottom: '10pt' }}>
                         <h2 style={{
-                            fontSize: '14.4pt',
+                            fontSize: `${sizes.sectionHeader}px`,
                             textTransform: 'uppercase',
                             textAlign: 'left',
                             fontWeight: 'normal',
@@ -194,7 +205,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                         marginTop: '10pt'
                                     }}>
                                         <div style={{
-                                            fontSize: '12pt',
+                                            fontSize: `${sizes.subsection}px`,
                                             fontWeight: 'normal'
                                         }}>
                                             <span style={{ fontWeight: 'bold' }}>{exp.position}</span>
@@ -213,7 +224,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                             )}
                                         </div>
                                         <span style={{
-                                            fontSize: '12pt',
+                                            fontSize: `${sizes.subsection}px`,
                                             fontWeight: 'normal'
                                         }}>
                                             {exp.startDate} - {exp.endDate}
@@ -221,7 +232,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                     </div>
                                     {exp.achievements.length > 0 && exp.achievements[0] && (
                                         <ul style={{
-                                            fontSize: '10pt',
+                                            fontSize: `${sizes.body}px`,
                                             marginTop: '2pt',
                                             marginBottom: '0',
                                             marginLeft: '1em',
@@ -254,20 +265,18 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
 
             {/* Projects */}
             {resumeData.projects.length > 0 && (() => {
-                // Filter out empty projects
                 const validProjects = resumeData.projects.filter(project =>
                     project.title.trim() ||
                     project.technologies.trim() ||
                     project.description.some(d => d.trim())
                 );
 
-                // Only render if there are valid projects
                 if (validProjects.length === 0) return null;
 
                 return (
                     <div style={{ marginBottom: '10pt' }}>
                         <h2 style={{
-                            fontSize: '14.4pt',
+                            fontSize: `${sizes.sectionHeader}px`,
                             textTransform: 'uppercase',
                             textAlign: 'left',
                             fontWeight: 'normal',
@@ -291,7 +300,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                         marginBottom: '2pt'
                                     }}>
                                         <h3 style={{
-                                            fontSize: '12pt',
+                                            fontSize: `${sizes.subsection}px`,
                                             fontWeight: 'bold',
                                             margin: '0'
                                         }}>
@@ -301,7 +310,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                             <a href={project.link} target='_blank' style={{
                                                 color: 'rgb(0, 51, 153)',
                                                 textDecoration: 'none',
-                                                fontSize: '12pt',
+                                                fontSize: `${sizes.subsection}px`,
                                                 fontWeight: 'normal'
                                             }}>
                                                 Live Demo
@@ -310,7 +319,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                     </div>
                                     {project.technologies && (
                                         <p style={{
-                                            fontSize: '9pt',
+                                            fontSize: `${sizes.techStack}px`,
                                             fontStyle: 'italic',
                                             marginBottom: '2pt',
                                             marginTop: '0',
@@ -321,7 +330,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                     )}
                                     {project.description.length > 0 && project.description[0] && (
                                         <ul style={{
-                                            fontSize: '10pt',
+                                            fontSize: `${sizes.body}px`,
                                             marginTop: '2pt',
                                             marginBottom: '0',
                                             marginLeft: '1em',
@@ -356,7 +365,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
             {resumeData.education.length > 0 && (
                 <div style={{ marginBottom: '10pt' }}>
                     <h2 style={{
-                        fontSize: '14.4pt',
+                        fontSize: `${sizes.sectionHeader}px`,
                         textTransform: 'uppercase',
                         textAlign: 'left',
                         fontWeight: 'normal',
@@ -367,7 +376,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                     }}>
                         Education</h2>
                     <div style={{
-                        fontSize: '11pt',
+                        fontSize: `${sizes.education}px`,
                         marginTop: '6pt',
                         fontWeight: 'normal'
                     }}>
@@ -412,7 +421,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
             {resumeData.certifications.length > 0 && (
                 <div style={{ marginBottom: '10pt' }}>
                     <h2 style={{
-                        fontSize: '14.4pt',
+                        fontSize: `${sizes.sectionHeader}px`,
                         textTransform: 'uppercase',
                         textAlign: 'left',
                         fontWeight: 'normal',
@@ -424,7 +433,7 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                         Certifications & Achievements
                     </h2>
                     <ul style={{
-                        fontSize: '10pt',
+                        fontSize: `${sizes.body}px`,
                         marginTop: '6pt',
                         marginBottom: '0',
                         marginLeft: '1em',
