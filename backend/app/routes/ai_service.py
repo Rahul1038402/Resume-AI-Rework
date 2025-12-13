@@ -1,6 +1,7 @@
 """
 AI Service for Resume Builder
 Handles Groq API integration with streaming support
+Updated: December 2024 - Current Groq models
 """
 import os
 from groq import Groq
@@ -14,9 +15,12 @@ class AIService:
         
         self.client = Groq(api_key=self.api_key)
         
-        # Model configuration
+        # Model configuration (Updated December 2024)
+        # Primary: Best overall performance & speed (276 tokens/sec)
         self.primary_model = "llama-3.3-70b-versatile"
-        self.fallback_model = "mixtral-8x7b-32768"
+        
+        # Fallback: Ultra-fast for simple tasks
+        self.fallback_model = "llama-3.1-8b-instant"
         
         # Generation parameters
         self.temperature = 0.7

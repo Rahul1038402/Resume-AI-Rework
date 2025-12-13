@@ -24,8 +24,8 @@ TIMEOUT_CONFIG = {
 
 # Groq models (very fast!)
 GROQ_MODELS = [
-    "llama-3.3-70b-versatile",  # Best balance of speed and quality
-    "mixtral-8x7b-32768",        # Good for long context
+    "llama-3.3-70b-versatile",  # Primary: Best balance of speed & quality (276 T/sec)
+    "llama-3.1-8b-instant",      # Fallback: Ultra-fast for simple tasks
 ]
 
 def get_optimal_timeout(has_job_info: bool, include_recommendations: bool, prompt_length: int) -> int:
