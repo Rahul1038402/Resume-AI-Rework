@@ -88,19 +88,49 @@ def stream_ai_response(messages, prompt_class, section):
             
             # Stream AI response
             full_response = ""
+            pre_json_content = ""
+            json_detected = False
             
             for chunk in ai_service.stream_completion(messages):
                 if chunk:
                     full_response += chunk
-                    if not full_response.strip().startswith('{'):
+                    
+                    # Check if JSON is starting
+                    if not json_detected and '{"type": "suggestion"' in full_response:
+                        json_detected = True
+                        # Extract text before JSON
+                        json_start = full_response.index('{"type": "suggestion"')
+                        pre_json_content = full_response[:json_start].strip()
+                    
+                    # Only stream as content if no JSON detected yet
+                    if not json_detected and not full_response.strip().startswith('{'):
                         yield f"data: {json.dumps({'type': 'content', 'data': chunk})}\n\n"
             
             # Check if JSON suggestion
             json_suggestion = prompt_class.parse_json_suggestion(full_response)
             
             if json_suggestion:
-                yield f"data: {json.dumps({'type': 'suggestion', 'data': json_suggestion})}\n\n"
+                # Send the pre-JSON conversational text as a message if it exists
+                if pre_json_content:
+                    yield f"data: {json.dumps({'type': 'content', 'data': pre_json_content})}\n\n"
+                
+                # Extract just the data fields
+                data_payload = {}
+                
+                if 'projects' in json_suggestion:
+                    data_payload['projects'] = json_suggestion['projects']
+                if 'message' in json_suggestion:
+                    data_payload['message'] = json_suggestion['message']
+                if 'experiences' in json_suggestion:
+                    data_payload['experiences'] = json_suggestion['experiences']
+                if 'summary' in json_suggestion:
+                    data_payload['summary'] = json_suggestion['summary']
+                if 'skills' in json_suggestion:
+                    data_payload['skills'] = json_suggestion['skills']
+                
+                yield f"data: {json.dumps({'type': 'suggestion', 'data': data_payload})}\n\n"
             else:
+                # If it looks like JSON but didn't parse, send it as content
                 if full_response.strip().startswith('{'):
                     yield f"data: {json.dumps({'type': 'content', 'data': full_response})}\n\n"
             
