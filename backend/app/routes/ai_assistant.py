@@ -1,0 +1,253 @@
+"""
+AI Assistant Routes for All Resume Sections
+"""
+from flask import Blueprint, request, jsonify, Response, stream_with_context
+from app.routes.ai_service import AIService
+from app.prompts.project_prompts import ProjectPrompts
+from app.prompts.summary_prompts import SummaryPrompts
+from app.prompts.skills_prompts import SkillsPrompts
+from app.prompts.experience_prompts import ExperiencePrompts
+import json
+from datetime import datetime, timedelta
+
+ai_bp = Blueprint('ai_assistant', __name__, url_prefix='/api/ai-assist')
+
+# Initialize AI service
+ai_service = AIService()
+
+# Rate limiting storage
+user_request_counts = {}
+
+# Rate limit constants
+SECTION_LIMIT = 15
+SESSION_LIMIT = 50
+RESET_HOURS = 24
+
+def check_rate_limit(session_id: str, section: str) -> tuple[bool, dict]:
+    """Check rate limits"""
+    key = f"{session_id}:{section}"
+    current_time = datetime.now()
+    
+    if key not in user_request_counts:
+        user_request_counts[key] = {
+            'section': 0,
+            'session': 0,
+            'last_reset': current_time
+        }
+    
+    counts = user_request_counts[key]
+    
+    # Reset after 24 hours
+    time_since_reset = current_time - counts['last_reset']
+    if time_since_reset > timedelta(hours=RESET_HOURS):
+        counts['section'] = 0
+        counts['session'] = 0
+        counts['last_reset'] = current_time
+    
+    # Check limits
+    if counts['section'] >= SECTION_LIMIT:
+        return False, {
+            'error': f'Section limit reached ({SECTION_LIMIT} requests)',
+            'limit_type': 'section',
+            'remaining_section': 0,
+            'remaining_session': max(0, SESSION_LIMIT - counts['session'])
+        }
+    
+    if counts['session'] >= SESSION_LIMIT:
+        return False, {
+            'error': f'Session limit reached ({SESSION_LIMIT} requests)',
+            'limit_type': 'session',
+            'remaining_section': max(0, SECTION_LIMIT - counts['section']),
+            'remaining_session': 0
+        }
+    
+    # Increment
+    counts['section'] += 1
+    counts['session'] += 1
+    
+    return True, {
+        'remaining_section': max(0, SECTION_LIMIT - counts['section']),
+        'remaining_session': max(0, SESSION_LIMIT - counts['session'])
+    }
+
+def stream_ai_response(messages, prompt_class, section):
+    """Generic streaming handler"""
+    def generate():
+        try:
+            # Send rate limit first
+            allowed, limit_info = check_rate_limit(
+                request.json.get('session_id', 'default'),
+                section
+            )
+            
+            if not allowed:
+                yield f"data: {json.dumps({'type': 'error', 'data': limit_info['error']})}\n\n"
+                return
+            
+            yield f"data: {json.dumps({'type': 'rate_limit', 'data': limit_info})}\n\n"
+            
+            # Stream AI response
+            full_response = ""
+            
+            for chunk in ai_service.stream_completion(messages):
+                if chunk:
+                    full_response += chunk
+                    if not full_response.strip().startswith('{'):
+                        yield f"data: {json.dumps({'type': 'content', 'data': chunk})}\n\n"
+            
+            # Check if JSON suggestion
+            json_suggestion = prompt_class.parse_json_suggestion(full_response)
+            
+            if json_suggestion:
+                yield f"data: {json.dumps({'type': 'suggestion', 'data': json_suggestion})}\n\n"
+            else:
+                if full_response.strip().startswith('{'):
+                    yield f"data: {json.dumps({'type': 'content', 'data': full_response})}\n\n"
+            
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'data': str(e)})}\n\n"
+    
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'}
+    )
+
+# ============= PROJECTS SECTION =============
+@ai_bp.route('/projects', methods=['POST'])
+def assist_projects():
+    """AI assistance for Projects"""
+    try:
+        data = request.get_json()
+        user_message = data.get('user_message', '').strip()
+        conversation_history = data.get('conversation_history', [])
+        resume_context = data.get('resume_context', {})
+        
+        if not user_message:
+            return jsonify({'error': 'user_message is required'}), 400
+        
+        system_prompt = ProjectPrompts.get_system_prompt(resume_context)
+        
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history[-8:]:
+            messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
+        messages.append({"role": "user", "content": user_message})
+        
+        return stream_ai_response(messages, ProjectPrompts, 'projects')
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============= SUMMARY SECTION =============
+@ai_bp.route('/summary', methods=['POST'])
+def assist_summary():
+    """AI assistance for Summary"""
+    try:
+        data = request.get_json()
+        user_message = data.get('user_message', '').strip()
+        conversation_history = data.get('conversation_history', [])
+        resume_context = data.get('resume_context', {})
+        
+        if not user_message:
+            return jsonify({'error': 'user_message is required'}), 400
+        
+        system_prompt = SummaryPrompts.get_system_prompt(resume_context)
+        
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history[-8:]:
+            messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
+        messages.append({"role": "user", "content": user_message})
+        
+        return stream_ai_response(messages, SummaryPrompts, 'summary')
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============= SKILLS SECTION =============
+@ai_bp.route('/skills', methods=['POST'])
+def assist_skills():
+    """AI assistance for Skills"""
+    try:
+        data = request.get_json()
+        user_message = data.get('user_message', '').strip()
+        conversation_history = data.get('conversation_history', [])
+        resume_context = data.get('resume_context', {})
+        
+        if not user_message:
+            return jsonify({'error': 'user_message is required'}), 400
+        
+        system_prompt = SkillsPrompts.get_system_prompt(resume_context)
+        
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history[-8:]:
+            messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
+        messages.append({"role": "user", "content": user_message})
+        
+        return stream_ai_response(messages, SkillsPrompts, 'skills')
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============= EXPERIENCE SECTION =============
+@ai_bp.route('/experience', methods=['POST'])
+def assist_experience():
+    """AI assistance for Experience"""
+    try:
+        data = request.get_json()
+        user_message = data.get('user_message', '').strip()
+        conversation_history = data.get('conversation_history', [])
+        resume_context = data.get('resume_context', {})
+        
+        if not user_message:
+            return jsonify({'error': 'user_message is required'}), 400
+        
+        system_prompt = ExperiencePrompts.get_system_prompt(resume_context)
+        
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history[-8:]:
+            messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
+        messages.append({"role": "user", "content": user_message})
+        
+        return stream_ai_response(messages, ExperiencePrompts, 'experience')
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============= UTILITY ENDPOINTS =============
+@ai_bp.route('/reset-limits', methods=['POST'])
+def reset_limits():
+    """Reset rate limits"""
+    try:
+        data = request.get_json()
+        session_id = data.get('session_id', 'default')
+        section = data.get('section', 'projects')
+        
+        key = f"{session_id}:{section}"
+        if key in user_request_counts:
+            del user_request_counts[key]
+        
+        return jsonify({
+            'success': True,
+            'new_limits': {
+                'remaining_section': SECTION_LIMIT,
+                'remaining_session': SESSION_LIMIT
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@ai_bp.route('/health', methods=['GET'])
+def health():
+    """Health check"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'ai-assistant',
+        'models': ai_service.get_available_models(),
+        'rate_limits': {
+            'section_limit': SECTION_LIMIT,
+            'session_limit': SESSION_LIMIT,
+            'reset_hours': RESET_HOURS
+        }
+    })
