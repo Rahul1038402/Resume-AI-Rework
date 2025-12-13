@@ -2,6 +2,7 @@ import React from 'react';
 import { Project, ResumeData } from '../../../../types';
 import { AIModeToggle } from '../../../AIAssistant/AIModeToggle';
 import { AIChatInterface } from '../../../AIAssistant/AIChatInterface';
+import { AIProjectSuggestionCard } from '../../../AIAssistant/AIProjectSuggestionCard';
 import { useAIMode } from '../../../../hooks/useAIMode';
 import { useAIAssistant } from '../../../../hooks/useAIAssistant';
 import { useConversationHistory } from '../../../../hooks/useConversationHistory';
@@ -73,6 +74,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     resumeContext,
     sessionId: sessionIdRef.current
   });
+
+  React.useEffect(() => {
+  console.log('🎯 ProjectsSection - currentSuggestion changed:', currentSuggestion);
+  console.log('🎯 Is it null?', currentSuggestion === null);
+  console.log('🎯 Is it undefined?', currentSuggestion === undefined);
+}, [currentSuggestion]);
 
   // Conversation History Hook
   const { exportConversation } = useConversationHistory({
@@ -151,6 +158,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
             onAcceptSuggestion={handleAcceptSuggestion}
             onRejectSuggestion={handleRejectSuggestion}
             onRefineSuggestion={handleRefine}
+            suggestionCardComponent={AIProjectSuggestionCard}
           />
         </div>
       )}

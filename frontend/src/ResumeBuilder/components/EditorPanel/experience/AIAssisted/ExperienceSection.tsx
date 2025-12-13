@@ -8,6 +8,7 @@ import { useConversationHistory } from '../../../../hooks/useConversationHistory
 import { ParsedExperience } from '../../../AIAssistant/types';
 import { AIExperienceSuggestionCard } from '../../../AIAssistant/AIExperienceSuggestionCard';
 import { ExperienceEditor } from '../Manual/ExperienceEditor';
+import { a } from 'node_modules/framer-motion/dist/types.d-DagZKalS';
 
 interface ExperienceSectionProps {
   resumeData: ResumeData;
@@ -84,6 +85,8 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   // Handle accepting AI suggestion
   const handleAcceptSuggestion = (edited: ParsedExperience) => {
     setSuggestion(null);
+
+    addExperience();
     
     // Update the newly created experience
     setTimeout(() => {
