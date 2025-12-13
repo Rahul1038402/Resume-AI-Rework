@@ -187,9 +187,20 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                                         fontWeight: 'normal'
                                     }}>
                                         <span style={{ fontWeight: 'bold' }}>{exp.position}</span>
-                                        <span> at </span>
-                                        <span style={{ fontWeight: 'bold' }}>{exp.company}</span>
-                                        <span style={{ marginLeft: '4pt' }}>({exp.location})</span>
+
+                                        {exp.company && (
+                                            <>
+                                                <span> at </span>
+                                                <span style={{ fontWeight: 'bold' }}>{exp.company}</span>
+                                            </>
+                                        )}
+
+                                        {exp.location && (
+                                            <span style={{ marginLeft: '4pt' }}>
+                                                ({exp.location})
+                                            </span>
+                                        )}
+
                                     </div>
                                     <span style={{
                                         fontSize: '12pt',
