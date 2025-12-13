@@ -1,7 +1,6 @@
 import os
 from flask import Flask
 from flask_cors import CORS
-from app.routes import routes
 
 def create_app():
     app = Flask(__name__)
@@ -16,7 +15,8 @@ def create_app():
             ],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"]
-        }
+        },
+        r"/api/*": {"origins": "*"}
     })
     
     # Set maximum file upload size (10MB)
@@ -29,8 +29,14 @@ def create_app():
         print("Get your free API key at: https://console.groq.com/keys")
     else:
         print("✓ Groq API key found")
+
+    from app.routes.routes import routes
+    from app.routes.ai_assistant import ai_bp
+    #from app.gmail_routes import gmail_routes
     
     # Register routes
     app.register_blueprint(routes)
+    #app.register_blueprint(gmail_routes)
+    app.register_blueprint(ai_bp)
     
     return app
