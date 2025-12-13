@@ -18,7 +18,7 @@ export const SectionNavigation = ({ activeSection, setActiveSection }: SectionNa
         { id: 'certifications', icon: Award, label: 'Certifications' }
     ];
     return (
-        <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-wrap justify-center items-center gap-2 py-4 border-b border-gray-200 dark:border-gray-700">
             {sections.map(({ id, icon: Icon, label }) => (
                 <button
                     key={id}
