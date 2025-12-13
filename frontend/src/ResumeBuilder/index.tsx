@@ -12,6 +12,7 @@ import { ActiveTab, ActiveSection } from './types';
 import { generateResumePDF } from '@/ResumeAnalyzer/api/resumeService';
 import '../index.css';
 import Loader from '@/components/common/Loader';
+import { SectionNavigation } from './components/SectionNavigation';
 
 const STORAGE_KEY_LAST_SAVED = 'lastSaved';
 
@@ -42,6 +43,7 @@ function ResumeBuilder() {
         addSkillCategory,
         updateSkillCategory,
         deleteSkillCategory,
+        replaceAllSkillCategories,
         addProject,
         updateProject,
         deleteProject,
@@ -175,14 +177,14 @@ function ResumeBuilder() {
     // Early return for loading state
     if (isPageLoading) {
         return (
-            <Loader/>
+            <Loader />
         );
     }
 
     return (
         <>
             <Header />
-            <div className="flex flex-col pt-24">
+            <div className="flex flex-col pt-20">
                 {/* Top Controls */}
                 <TopControls
                     activeTab={activeTab}
@@ -191,23 +193,16 @@ function ResumeBuilder() {
                     resetAllData={resetAllData}
                     isDownloading={isDownloading}
                     downloadProgress={downloadProgress}
-                    lastSaved={lastSaved}
                 />
 
                 {/* Main Content Area */}
                 <div className="flex-1">
+                    <SectionNavigation
+                        activeSection={activeSection}
+                        setActiveSection={setActiveSection}
+                    />
                     {activeTab === 'editor' ? (
-                        <div className="flex flex-col custom:flex-row justify-center items-center gap-4 p-4">
-                            <style>
-                                {`
-                                    @media (min-width: 1185px) {
-                                        .responsive-flex {
-                                            flex-direction: row !important;
-                                        }
-                                    }
-                                `}
-                            </style>
-                            
+                        <div className="flex flex-col custom:flex-row justify-center items-center gap-4 pb-4 px-4 pt-2">
                             {/* Editor Panel */}
                             <EditorPanel
                                 activeSection={activeSection}
@@ -218,6 +213,7 @@ function ResumeBuilder() {
                                 addSkillCategory={addSkillCategory}
                                 updateSkillCategory={updateSkillCategory}
                                 deleteSkillCategory={deleteSkillCategory}
+                                replaceAllSkillCategories={replaceAllSkillCategories}
                                 addProject={addProject}
                                 updateProject={updateProject}
                                 deleteProject={deleteProject}
@@ -244,6 +240,7 @@ function ResumeBuilder() {
                                 layoutSettings={layoutSettings}
                                 warnings={warnings}
                                 setIsSuggestionsOpen={setIsSuggestionsOpen}
+                                lastSaved={lastSaved}
                             />
                         </div>
                     ) : activeTab === 'layout' ? (
