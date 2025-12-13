@@ -115,6 +115,19 @@ export const useResumeData = () => {
         }));
     };
 
+    const replaceAllSkillCategories = (categories: SkillCategory[]) => {
+    setResumeData(prev => ({
+        ...prev,
+        skills: {
+            ...prev.skills,
+            categories: categories.map(cat => ({
+                ...cat,
+                id: cat.id || Date.now().toString() + Math.random()
+            }))
+        }
+    }));
+};
+
     // Projects
     const addProject = () => {
         const newProject: Project = {
@@ -339,6 +352,7 @@ export const useResumeData = () => {
         addSkillCategory,
         updateSkillCategory,
         deleteSkillCategory,
+        replaceAllSkillCategories,
         addProject,
         updateProject,
         deleteProject,

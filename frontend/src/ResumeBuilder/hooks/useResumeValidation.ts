@@ -16,6 +16,12 @@ export const useResumeValidation = (resumeData: ResumeData) => {
     const [warningConfig] = useState<WarningConfig>(getDefaultWarningConfig());
 
     const validateResumeData = useCallback(() => {
+        // ✅ FIXED: Add safety check for undefined resumeData
+        if (!resumeData) {
+            setWarnings([]);
+            return;
+        }
+
         if (!warningConfig.enabled) {
             setWarnings([]);
             return;
@@ -23,23 +29,24 @@ export const useResumeValidation = (resumeData: ResumeData) => {
 
         const newWarnings: string[] = [];
 
+        // ✅ FIXED: Add optional chaining for all nested properties
         // Check projects
-        if (resumeData.projects.length < warningConfig.thresholds.minProjects) {
+        if ((resumeData.projects?.length || 0) < warningConfig.thresholds.minProjects) {
             newWarnings.push(`Add at least ${warningConfig.thresholds.minProjects} projects to strengthen your resume`);
         }
 
         // Check skills
-        if (resumeData.skills.categories.length < warningConfig.thresholds.minSkillCategories) {
+        if ((resumeData.skills?.categories?.length || 0) < warningConfig.thresholds.minSkillCategories) {
             newWarnings.push(`Add more skill categories (minimum: ${warningConfig.thresholds.minSkillCategories})`);
         }
 
         // Check education
-        if (resumeData.education.length < warningConfig.thresholds.minEducation) {
+        if ((resumeData.education?.length || 0) < warningConfig.thresholds.minEducation) {
             newWarnings.push(`Add your education details (minimum: ${warningConfig.thresholds.minEducation})`);
         }
 
         // Check contact information
-        if (!resumeData.personalInfo.email || !resumeData.personalInfo.phone) {
+        if (!resumeData.personalInfo?.email || !resumeData.personalInfo?.phone) {
             newWarnings.push('Ensure contact information is complete');
         }
 
