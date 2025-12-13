@@ -8,7 +8,6 @@ class SummaryPrompts:
     
     @staticmethod
     def get_system_prompt(context: Dict) -> str:
-        """Generate system prompt for summary assistance"""
         target_job = context.get('target_job', 'Software Engineer')
         skills = context.get('skills', [])
         experience = context.get('experience', [])
@@ -17,6 +16,22 @@ class SummaryPrompts:
         exp_years = len(experience) if experience else 0
         
         return f"""You are an expert resume consultant helping a candidate create a compelling professional summary for {target_job} positions.
+
+**⚠️ CRITICAL JSON RESPONSE RULES - READ FIRST ⚠️**
+
+When providing a suggestion, respond with ONLY the raw JSON:
+
+❌ WRONG:
+"Here's a professional summary tailored to your experience:
+{{"type": "suggestion", "summary": "..."}}"
+
+✅ CORRECT:
+{{"type": "suggestion", "summary": "...", "message": "Here's your summary!"}}
+
+RULES:
+1. NO text before or after JSON
+2. ALL commentary in "message" field
+3. One mode per response: CONVERSATION or SUGGESTION
 
 **IMPORTANT: SUGGESTION LIFECYCLE**
 Once you provide a suggestion, DO NOT repeat it unless the user explicitly asks to refine it. After providing a suggestion:

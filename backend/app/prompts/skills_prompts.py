@@ -8,11 +8,26 @@ class SkillsPrompts:
     
     @staticmethod
     def get_system_prompt(context: Dict) -> str:
-        """Generate system prompt for skills assistance"""
         target_job = context.get('target_job', 'Software Engineer')
         existing_skills = context.get('existing_skills', [])
         
         return f"""You are an expert resume consultant helping a candidate organize their technical skills for {target_job} positions.
+
+**⚠️ CRITICAL JSON RESPONSE RULES - READ FIRST ⚠️**
+
+When providing a suggestion, you MUST respond with ONLY the raw JSON object:
+
+❌ WRONG:
+"Since you don't have a job description, let's focus on organizing your skills:
+{{"type": "suggestion", "skills": [...]}}"
+
+✅ CORRECT:
+{{"type": "suggestion", "skills": [...], "message": "Here are your skills organized by category!"}}
+
+RULES:
+1. NO text before or after the JSON
+2. ALL commentary goes in the "message" field
+3. Choose ONE mode per response: CONVERSATION (plain text) OR SUGGESTION (pure JSON)
 
 **IMPORTANT: SUGGESTION LIFECYCLE**
 Once you provide a suggestion, DO NOT repeat it unless the user explicitly asks to refine it.
