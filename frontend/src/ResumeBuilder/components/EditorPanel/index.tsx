@@ -1,12 +1,11 @@
-import { ActiveSection } from '../../types';
-import { PersonalInfoEditor } from './PersonalInfoEditor';
-import { SummaryEditor } from './SummaryEditor';
-import { SkillsEditor } from './SkillsEditor';
-import { ProjectsEditor } from './ProjectsEditor';
-import { ExperienceEditor } from './ExperienceEditor';
-import { EducationEditor } from './EducationEditor';
-import { CertificationsEditor } from './CertificationsEditor';
-import { SectionNavigation } from '../SectionNavigation';
+import { ActiveSection, SkillCategory } from '../../types';
+import { PersonalInfoEditor } from './personalinfo/PersonalInfoEditor';
+import ProjectsSection from './project/AIAssisted/ProjectsSection';
+import { EducationEditor } from './education/EducationEditor';
+import { CertificationsEditor } from './certifications/CertificationsEditor';
+import SummarySection from './summary/AIAssisted/SummarySection';
+import SkillsSection from './skills/AIAssisted/SkillsSection';
+import ExperienceSection from './experience/AIAssisted/ExperienceSection';
 
 interface EditorPanelProps {
     activeSection: ActiveSection;
@@ -18,6 +17,7 @@ interface EditorPanelProps {
     addSkillCategory: () => void;
     updateSkillCategory: (id: string, field: string, value: string) => void;
     deleteSkillCategory: (id: string) => void;
+    replaceAllSkillCategories: (categories: SkillCategory[]) => void;
     // Projects
     addProject: () => void;
     updateProject: (id: string, field: string, value: string | string[]) => void;
@@ -51,6 +51,7 @@ const EditorPanel = ({
     addSkillCategory,
     updateSkillCategory,
     deleteSkillCategory,
+    replaceAllSkillCategories,
     addProject,
     updateProject,
     deleteProject,
@@ -72,10 +73,6 @@ const EditorPanel = ({
 }: EditorPanelProps) => {
     return (
         <div className="bg-white dark:bg-black rounded-lg shadow-lg p-6 overflow-y-auto h-full custom:max-h-[calc(100vh-200px)] w-full custom:w-[500pt] max-w-full">
-            <SectionNavigation 
-                activeSection={activeSection}
-                setActiveSection={setActiveSection}
-            />
 
             {/* Section Content */}
             {activeSection === 'personal' && (
@@ -85,22 +82,26 @@ const EditorPanel = ({
                 />
             )}
             {activeSection === 'summary' && (
-                <SummaryEditor
+                <SummarySection
+                    resumeData={resumeData}
                     summary={resumeData.summary}
                     updateSummary={updateSummary}
                 />
             )}
             {activeSection === 'skills' && (
-                <SkillsEditor
+                <SkillsSection
+                    resumeData={resumeData}
                     skills={resumeData.skills}
                     addSkillCategory={addSkillCategory}
                     updateSkillCategory={updateSkillCategory}
                     deleteSkillCategory={deleteSkillCategory}
+                    replaceAllSkillCategories={replaceAllSkillCategories}
                 />
             )}
             {activeSection === 'projects' && (
-                <ProjectsEditor
-                    projects={resumeData.projects}
+                <ProjectsSection
+                    resumeData={resumeData}
+                    projects={resumeData.projects || []}
                     addProject={addProject}
                     updateProject={updateProject}
                     deleteProject={deleteProject}
@@ -110,7 +111,8 @@ const EditorPanel = ({
                 />
             )}
             {activeSection === 'experience' && (
-                <ExperienceEditor
+                <ExperienceSection
+                    resumeData={resumeData}
                     experience={resumeData.experience}
                     addExperience={addExperience}
                     updateExperience={updateExperience}
