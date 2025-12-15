@@ -19,7 +19,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="text"
                         value={personalInfo.firstName}
                         onChange={(e) => updatePersonalInfo('firstName', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -33,7 +33,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="text"
                         value={personalInfo.lastName}
                         onChange={(e) => updatePersonalInfo('lastName', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -47,7 +47,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="email"
                         value={personalInfo.email}
                         onChange={(e) => updatePersonalInfo('email', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -61,7 +61,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="tel"
                         value={personalInfo.phone}
                         onChange={(e) => updatePersonalInfo('phone', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -75,7 +75,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="text"
                         value={personalInfo.location}
                         onChange={(e) => updatePersonalInfo('location', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -89,7 +89,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="text"
                         value={personalInfo.targetJobTitle}
                         onChange={(e) => updatePersonalInfo('targetJobTitle', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -103,7 +103,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="url"
                         value={personalInfo.linkedinUrl}
                         onChange={(e) => updatePersonalInfo('linkedinUrl', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -117,7 +117,7 @@ export const PersonalInfoEditor = ({ personalInfo, updatePersonalInfo }: Persona
                         type="url"
                         value={personalInfo.githubUrl}
                         onChange={(e) => updatePersonalInfo('githubUrl', e.target.value)}
-                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
+                        className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
