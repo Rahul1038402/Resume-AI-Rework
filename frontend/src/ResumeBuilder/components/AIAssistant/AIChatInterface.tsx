@@ -244,7 +244,7 @@ export const AIChatInterface: React.FC<AIChatInterfaceProps> = ({
                             <button
                                 type="submit"
                                 disabled={!inputValue.trim() || isLoading || isRateLimitExhausted}
-                                className="px-4 py-2 bg-resume-primary hover:bg-resume-primary/80 dark:bg-teal-600 dark:hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 h-full"
+                                className="px-4 py-2 bg-resume-primary hover:bg-resume-primary/90 dark:bg-teal-600 dark:hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 h-full"
                             >
                                 <ArrowRight size={18} />
                             </button>
