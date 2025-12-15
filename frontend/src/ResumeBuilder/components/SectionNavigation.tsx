@@ -26,8 +26,8 @@ export const SectionNavigation = ({ activeSection, setActiveSection }: SectionNa
                     className={cn(
                         "px-3 py-2 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition-all duration-200",
                         activeSection === id
-                            ? "bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 shadow-md"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                            ? "text-black dark:text-white dark:hover:bg-gray-900 border-2 dark:border-gray-400 shadow-md"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 border dark:border-gray-700"
                     )}
                 >
                     <Icon size={16} />
