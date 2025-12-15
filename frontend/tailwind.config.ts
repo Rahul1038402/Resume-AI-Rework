@@ -78,8 +78,8 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         resume: {
-          primary: "#1A365D",
-          secondary: "#38B2AC",
+          primary: "#2563eb",
+          secondary: "#26C6DA",
           accent: "#F97316",
           light: "#F5F7FA",
           dark: "#2D3748",
