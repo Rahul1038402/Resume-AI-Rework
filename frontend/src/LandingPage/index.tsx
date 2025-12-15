@@ -3,23 +3,44 @@ import NumberedFeatureCards from "./components/CardComponents";
 import PainPointsSection from "./components/PainPointsSection";
 import HeroSection from "@/LandingPage/components/HeroSection";
 import StatsSection from "@/LandingPage/components/StatsSection";
+import FounderStorySection from "@/LandingPage/components/FounderStorySection";
+import WhyResumeAISection from "@/LandingPage/components/WhyResumeAISection";
+import CTASection from "@/LandingPage/components/CTASection";
+import FAQSection from "@/LandingPage/components/FAQSection";
+import ProductShowcaseSection from "./components/ProductShowcaseSection";
 
 const Index = () => {
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="pb-36 overflow-hidden">
-        <HeroSection/>
-
+      {/* Hero Section with improved CTA hierarchy */}
+      <section className="overflow-hidden">
+        <HeroSection />
       </section>
 
-      <PainPointsSection/>
+      {/* Founder Story - builds trust */}
+      <FounderStorySection />
 
+      {/* Problem/Solution comparison */}
+      <PainPointsSection />
+
+      {/* Why Choose ResumeAI */}
+      <WhyResumeAISection />
+
+      <ProductShowcaseSection />
+
+      {/* How it works - step by step */}
       <NumberedFeatureCards />
 
+      {/* Social proof with stats */}
       <StatsSection />
 
-    </Layout >
+      {/* FAQ Section */}
+      <FAQSection />
+
+      {/* CTA Section */}
+      <CTASection />
+
+    </Layout>
   );
 };
 
