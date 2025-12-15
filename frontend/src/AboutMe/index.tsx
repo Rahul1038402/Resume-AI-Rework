@@ -5,7 +5,7 @@ import IconMarquee from "@/components/ui/linksmarquee";
 export default function AboutMe() {
   return (
     <Layout>
-      <div className="min-h-screen py-16 px-6">
+      <div className="min-h-screen pt-28 pb-16 px-6">
         <div className="max-w-4xl mx-auto">
           {/* Heading */}
           <h1 className="text-4xl text-resume-primary dark:text-resume-secondary mb-6 text-center">
@@ -18,7 +18,7 @@ export default function AboutMe() {
             a passionate developer and student currently building projects in
             <span className="font-medium"> React, Next JS TypeScript, Node, Flask, and FastAPI</span>.
             I love solving leetcode problems daily, experimenting with AI/ML, and creating full-stack applications that make a real impact.
-            This project, <span className="font-semibold">Resume AI</span>, is my attempt to help students and professionals
+            This project, <span className="font-semibold">ResumeAI</span>, is my attempt to help students and professionals
             build smarter resumes, get tailored AI feedback, and track applications seamlessly.
           </p>
 
@@ -34,7 +34,7 @@ export default function AboutMe() {
 
           {/* Motivation */}
           <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-            Resume AI is more than just a tool, it’s a reflection of my journey as a developer.
+            ResumeAI is more than just a tool, it’s a reflection of my journey as a developer.
             If you find it helpful, I’d love your support. Even a small coffee keeps me motivated to
             keep improving this project and share more open-source work 🙌.
           </p>
@@ -42,7 +42,7 @@ export default function AboutMe() {
           {/* Donation / Contribute */}
           <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-2xl shadow-md mb-12 text-center">
             <h2 className="text-2xl text-resume-primary dark:text-resume-secondary mb-4">
-              Found Resume AI Helpful?
+              Found ResumeAI Helpful?
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Support my work, buy me a coffee and help me keep building useful projects. Thank you! 🙂

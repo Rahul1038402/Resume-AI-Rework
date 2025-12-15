@@ -7,7 +7,7 @@ const About = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12 z-[-3]">
+      <div className="container mx-auto px-4 pt-28 pb-12 z-[-3]">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-16">
@@ -110,7 +110,7 @@ const About = () => {
           </div>
 
           {/* CTA Section */}
-          <div className="text-center about-gradient-bg rounded-2xl p-12 shadow-2xl">
+          <div className="text-center gradient-bg rounded-2xl p-12 shadow-2xl">
             <h2 className="text-3xl md:text-4xl text-white mb-4">
               Ready to Transform Your Job Search?
             </h2>
