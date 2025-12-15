@@ -91,7 +91,7 @@ const PainPointsSection = () => {
                         Stop Struggling with Resume Creation
                     </h2>
                     <p className="text-xl text-gray-600 dark:text-gray-300">
-                        Resume AI eliminates common pain points and helps you land interviews faster
+                        ResumeAI eliminates common pain points and helps you land interviews faster
                     </p>
                 </motion.div>
 
@@ -111,7 +111,7 @@ const PainPointsSection = () => {
                     >
                         <div className="absolute -top-4 left-0 right-0 text-center z-10">
                             <span className="inline-block bg-red-600 dark:bg-red-800 text-white px-6 py-2 rounded-t-lg text-lg font-semibold shadow-lg">
-                                Without Resume AI
+                                Without ResumeAI
                             </span>
                         </div>
                         <motion.div
@@ -148,7 +148,7 @@ const PainPointsSection = () => {
                     >
                         <div className="absolute -top-4 left-0 right-0 text-center z-10">
                             <span className="inline-block bg-green-600 dark:bg-green-700 text-white px-6 py-2 rounded-t-lg text-lg font-semibold shadow-lg">
-                                With Resume AI
+                                With ResumeAI
                             </span>
                         </div>
                         <motion.div
@@ -190,7 +190,7 @@ const PainPointsSection = () => {
                         <span className="text-resume-primary dark:text-resume-secondary font-semibold">
                             Land interviews faster
                         </span>{" "}
-                        with Resume AI
+                        with ResumeAI
                     </p>
                 </motion.div>
             </div>

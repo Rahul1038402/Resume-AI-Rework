@@ -31,87 +31,91 @@ const HeroSection = () => {
     }
 
     return (
-        <div className="relative overflow-hidden">
-            {/* Gradient Border Bottom */}
-            <div
-                className="absolute bottom-0 left-0 right-0 h-px bg-[linear-gradient(to_right,transparent_0%,rgba(203,213,225,0.5)_20%,rgba(203,213,225,1)_50%,rgba(203,213,225,0.5)_80%,transparent_100%)]
-    dark:bg-[linear-gradient(to_right,transparent_0%,rgba(100,116,139,0.3)_20%,rgba(100,116,139,0.6)_50%,rgba(100,116,139,0.3)_80%,transparent_100%)]"
-            />
+        <>
+        <div className="h-56">
             <Aurora
-                colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
+                colorStops={["#7CFF67", "#b19eef", "#5227ff"]}
                 blend={0.5}
-                amplitude={1.0}
-                speed={0.5}
+                amplitude={2.0}
+                speed={1.0}
             />
-            <motion.div
-                className="mx-auto px-4 sm:pt-10 pb-20"
-                initial="hidden"
-                animate="visible"
-                variants={containerVariants}
-            >
-                <div className="max-w-3xl mx-auto text-center">
-                    <div className="mb-6 size-full flex flex-col justify-center items-center">
-                        <motion.div variants={itemVariants}>
-                            <GradientText
-                                colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-                                animationSpeed={11}
-                                showBorder={false}
-                                className="text-5xl"
-                            >
-                                <p className="mb-5">
-                                    Land Your Dream Job with AI-Powered Resume Tools
-                                </p>
-                            </GradientText>
-                        </motion.div>
+            </div>
+            <div className="relative overflow-hidden">
+                
+                {/* Gradient Border Bottom */}
+                <div
+                    className="absolute bottom-0 left-0 right-0 h-px bg-[linear-gradient(to_right,transparent_0%,rgba(203,213,225,0.5)_20%,rgba(203,213,225,1)_50%,rgba(203,213,225,0.5)_80%,transparent_100%)]
+    dark:bg-[linear-gradient(to_right,transparent_0%,rgba(100,116,139,0.3)_20%,rgba(100,116,139,0.6)_50%,rgba(100,116,139,0.3)_80%,transparent_100%)]"
+                />
+                <motion.div
+                    className="mx-auto px-4 pb-20"
+                    initial="hidden"
+                    animate="visible"
+                    variants={containerVariants}
+                >
+                    <div className="max-w-3xl mx-auto text-center">
+                        <div className="mb-6 size-full flex flex-col justify-center items-center">
+                            <motion.div variants={itemVariants}>
+                                <GradientText
+                                    colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                                    animationSpeed={11}
+                                    showBorder={false}
+                                    className="text-5xl"
+                                >
+                                    <p className="mb-5">
+                                        Land Your Dream Job with AI-Powered Resume Tools
+                                    </p>
+                                </GradientText>
+                            </motion.div>
 
-                        <motion.p
-                            className="text-2xl mb-6 mt-8 tracking-wide"
-                            variants={itemVariants}
-                        >
-                            Don't just send resumes. Build one in minutes,
-                            get AI-powered feedback to optimize it,
-                            and track every job application in one dashboard.
-                        </motion.p>
-                    </div>
-
-                    {/* Feature Buttons */}
-                    <motion.div
-                        className="flex flex-col sm:flex-row justify-center gap-4"
+                    <motion.p
+                        className="text-xl md:text-2xl mb-4 text-gray-700 dark:text-gray-300 tracking-wide"
                         variants={itemVariants}
                     >
-                        <Button
-                            size="lg"
-                            className="bg-blue-600 hover:bg-blue-700 dark:bg-gray-800 dark:hover:bg-gray-900 px-8 py-6 text-lg"
-                            asChild
-                        >
-                            <Link to="/builder">
-                                <ShinyText text="Build a Resume" disabled={false} speed={5} className="custom-class" />
-                            </Link>
-                        </Button>
+                        Built by a developer who landed a US remote internship using this exact tool. Now it's your turn.
+                    </motion.p>
 
-                        <Button
-                            size="lg"
-                            className="bg-blue-600 hover:bg-blue-700 dark:bg-gray-800 dark:hover:bg-gray-900 px-8 py-6 text-lg"
-                            asChild
-                        >
-                            <Link to="/analyzer">
-                                <ShinyText text="Analyze Resume" disabled={false} speed={5} className="custom-class" />
-                            </Link>
-                        </Button>
+                    <motion.p
+                        className="text-lg mb-10 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                        variants={itemVariants}
+                    >
+                        Build professional resumes in minutes, get AI-powered feedback to optimize them, and track every job application in one dashboard.
+                    </motion.p>
+                        </div>
 
-                        <Button
-                            size="lg"
-                            className="bg-blue-600 hover:bg-blue-700 dark:bg-gray-800 dark:hover:bg-gray-900 px-8 py-6 text-lg"
-                            asChild
+                        {/* Feature Buttons */}
+                        <motion.div
+                            className="flex flex-col sm:flex-row justify-center gap-4"
+                            variants={itemVariants}
                         >
-                            <Link to="/tracker">
-                                <ShinyText text="Track Applications" disabled={false} speed={5} className="custom-class" />
-                            </Link>
-                        </Button>
-                    </motion.div>
-                </div>
-            </motion.div>
-        </div>
+                            <button
+                                className="dark:bg-transparent rounded-lg border bg-resume-primary hover:bg-resume-primary/90 hover:dark:bg-gray-900/80 dark:border-gray-700 px-4 h-[60px] font-medium cursor-pointer transition-all duration-300"
+                            >
+                                <Link to="/builder">
+                                    <ShinyText text="Build a Resume" disabled={false} speed={5} className="text-lg" />
+                                </Link>
+                            </button>
+
+                            <button
+                                className="dark:bg-transparent rounded-lg border bg-resume-primary hover:bg-resume-primary/90 hover:dark:bg-gray-900/80 dark:border-gray-700 px-4 h-[60px] font-medium cursor-pointer transition-all duration-300"
+                            >
+                                <Link to="/analyzer">
+                                    <ShinyText text="Analyze Resume" disabled={false} speed={5} className="text-lg" />
+                                </Link>
+                            </button>
+
+                            <button
+                                className="dark:bg-transparent rounded-lg border bg-resume-primary hover:bg-resume-primary/90 hover:dark:bg-gray-900/80 dark:border-gray-700 px-4 h-[60px] font-medium cursor-pointer transition-all duration-300"
+                            >
+                                <Link to="/tracker">
+                                    <ShinyText text="Track Applications" disabled={false} speed={5} className="text-lg" />
+                                </Link>
+                            </button>
+                        </motion.div>
+                    </div>
+                </motion.div>
+            </div>
+        </>
     )
 }
 

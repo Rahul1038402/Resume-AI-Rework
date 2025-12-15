@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useInView } from "framer-motion";
 
 interface StatItemProps {
+  key: number;
   value: number;
   label: string;
   suffix?: string;
@@ -19,7 +20,7 @@ const StatItem = ({ value, label, suffix = "+", duration = 2 }: StatItemProps) =
 
   useEffect(() => {
     if (isInView) {
-      const controls = animate(count, value, { 
+      const controls = animate(count, value, {
         duration: duration,
         ease: [0.6, 0.05, 0.01, 0.9]
       });
@@ -49,16 +50,16 @@ const StatItem = ({ value, label, suffix = "+", duration = 2 }: StatItemProps) =
 
 const StatsSection = () => {
   const stats = [
-  {
-    value: 90,
-    label: "ATS compatibility score achievable",
-    suffix: "%",
-  },
-  {
-    value: 5,
-    label: "Minutes to build a complete resume",
-    suffix: "",
-  },
+    {
+      value: 90,
+      label: "ATS compatibility score achievable",
+      suffix: "%",
+    },
+    {
+      value: 5,
+      label: "Minutes to build a complete resume",
+      suffix: "",
+    },
     {
       value: 10,
       label: "Seconds to get AI feedback",
@@ -68,7 +69,11 @@ const StatsSection = () => {
   ];
 
   return (
-    <section className="py-20">
+    <section className="py-20 relative overflow-hidden">
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px bg-[linear-gradient(to_right,transparent_0%,rgba(203,213,225,0.5)_20%,rgba(203,213,225,1)_50%,rgba(203,213,225,0.5)_80%,transparent_100%)]
+    dark:bg-[linear-gradient(to_right,transparent_0%,rgba(100,116,139,0.3)_20%,rgba(100,116,139,0.6)_50%,rgba(100,116,139,0.3)_80%,transparent_100%)]"
+      />
       <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div
@@ -82,7 +87,7 @@ const StatsSection = () => {
             The Numbers Speak for Themselves
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Every day Resume AI helps job seekers optimize their resumes and land interviews — and the numbers keep growing.
+            Every day Resume AI helps job seekers optimize their resumes and land interviews and the numbers keep growing.
           </p>
         </motion.div>
 
