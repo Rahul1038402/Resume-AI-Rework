@@ -75,12 +75,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     sessionId: sessionIdRef.current
   });
 
-  React.useEffect(() => {
-  console.log('🎯 ProjectsSection - currentSuggestion changed:', currentSuggestion);
-  console.log('🎯 Is it null?', currentSuggestion === null);
-  console.log('🎯 Is it undefined?', currentSuggestion === undefined);
-}, [currentSuggestion]);
-
   // Conversation History Hook
   const { exportConversation } = useConversationHistory({
     section: 'projects',
