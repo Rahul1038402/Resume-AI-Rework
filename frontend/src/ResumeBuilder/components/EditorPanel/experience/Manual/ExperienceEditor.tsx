@@ -60,7 +60,7 @@ export const ExperienceEditor = ({
                                 type="text"
                                 value={exp.position}
                                 onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -74,7 +74,7 @@ export const ExperienceEditor = ({
                                 type="text"
                                 value={exp.location}
                                 onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -88,7 +88,7 @@ export const ExperienceEditor = ({
                                 type="text"
                                 value={exp.company}
                                 onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -103,7 +103,7 @@ export const ExperienceEditor = ({
                                     type="text"
                                     value={exp.startDate}
                                     onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
-                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -117,7 +117,7 @@ export const ExperienceEditor = ({
                                     type="text"
                                     value={exp.endDate}
                                     onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
-                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -145,7 +145,7 @@ export const ExperienceEditor = ({
                                             type="text"
                                             value={achievement}
                                             onChange={(e) => updateExperienceAchievement(exp.id, index, e.target.value)}
-                                            className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                            className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"

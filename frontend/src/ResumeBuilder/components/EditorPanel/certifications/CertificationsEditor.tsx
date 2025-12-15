@@ -54,7 +54,7 @@ export const CertificationsEditor = ({
                                 type="text"
                                 value={cert.name}
                                 onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -68,7 +68,7 @@ export const CertificationsEditor = ({
                                 type="text"
                                 value={cert.issuer}
                                 onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -83,7 +83,7 @@ export const CertificationsEditor = ({
                                     type="text"
                                     value={cert.date}
                                     onChange={(e) => updateCertification(cert.id, 'date', e.target.value)}
-                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -97,7 +97,7 @@ export const CertificationsEditor = ({
                                     type="text"
                                     value={cert.credentialId}
                                     onChange={(e) => updateCertification(cert.id, 'credentialId', e.target.value)}
-                                    className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                    className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
@@ -112,7 +112,7 @@ export const CertificationsEditor = ({
                                 type="url"
                                 value={cert.link}
                                 onChange={(e) => updateCertification(cert.id, 'link', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"

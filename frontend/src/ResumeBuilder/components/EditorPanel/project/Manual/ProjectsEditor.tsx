@@ -61,7 +61,7 @@ const ProjectsEditor = ({
                                 type="text"
                                 value={project.title}
                                 onChange={(e) => updateProject(project.id, 'title', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                 focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70
                                 focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)]
                                 outline-none focus:outline-none transition-all duration-150"
@@ -74,7 +74,7 @@ const ProjectsEditor = ({
                                 type="text"
                                 value={project.technologies}
                                 onChange={(e) => updateProject(project.id, 'technologies', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                outline-none focus:outline-none transition-all duration-150"
@@ -88,7 +88,7 @@ const ProjectsEditor = ({
                                 type="url"
                                 value={project.link}
                                 onChange={(e) => updateProject(project.id, 'link', e.target.value)}
-                                className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                outline-none focus:outline-none transition-all duration-150"
@@ -115,7 +115,7 @@ const ProjectsEditor = ({
                                             type="text"
                                             value={desc}
                                             onChange={(e) => updateProjectDescription(project.id, index, e.target.value)}
-                                            className="h-8 w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                                            className="h-8 w-full p-2 text-xs rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-black
                                focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                outline-none focus:outline-none transition-all duration-150"

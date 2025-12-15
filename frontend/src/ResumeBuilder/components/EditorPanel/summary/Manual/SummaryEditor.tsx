@@ -16,7 +16,7 @@ export const SummaryEditor = ({ summary, updateSummary }: SummaryEditorProps) =>
                     value={summary}
                     onChange={(e) => updateSummary(e.target.value)}
                     rows={12}
-                    className="w-full p-2 text-xs rounded-md border border-resume-primary/70 bg-white dark:bg-gray-800 
+                    className="w-full p-2 text-xs rounded-md border border-gray-300 dark:border-resume-primary/70 bg-white dark:bg-black 
                                    focus:border-[0.5px] focus:ring-1 focus:ring-resume-primary/60 dark:focus:ring-resume-secondary/70 
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
