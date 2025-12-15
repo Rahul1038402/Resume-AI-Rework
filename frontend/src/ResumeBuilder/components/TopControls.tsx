@@ -26,21 +26,23 @@ export const TopControls = ({
                     <div className="flex gap-2 flex-wrap justify-center">
                         <button
                             onClick={() => setActiveTab("editor")}
-                            className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors duration-200 ${activeTab === "editor" ? "bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white" : "bg-gray-300 text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"}`}
+                            className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors duration-200 ${activeTab === "editor" ? "text-black dark:text-white dark:hover:bg-gray-900 border-2 dark:border-gray-400 shadow-md"
+                                : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 border dark:border-gray-700"}`}
                         >
                             <Edit3 size={16} />
                             Editor
-                        </button>                    <button
+                        </button>                    
+                        <button
                             onClick={() => setActiveTab("layout")}
                             className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors duration-200 ${activeTab === "layout"
-                                ? "bg-resume-primary dark:bg-resume-secondary hover:bg-resume-primary/80 dark:hover:bg-resume-secondary/80 text-white"
-                                : "bg-gray-300 text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                                ? "text-black dark:text-white dark:hover:bg-gray-900 border-2 dark:border-gray-400 shadow-md"
+                                : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 border dark:border-gray-700"
                                 }`}
                         >
                             <Settings size={16} />
                             Layout
                         </button>
-                    </div>                
+                    </div>
                     {/* Right: Action Buttons */}
                     <div className="flex gap-2 flex-wrap justify-center">
                         <button
@@ -55,7 +57,7 @@ export const TopControls = ({
                                     width: `${downloadProgress}%`,
                                     left: 0
                                 }}
-                            />                        
+                            />
                             {/* Button content */}
                             <span className="relative z-10 flex items-center gap-2">
                                 {isDownloading ? (
@@ -70,7 +72,8 @@ export const TopControls = ({
                                     </>
                                 )}
                             </span>
-                        </button>                    <button
+                        </button>                    
+                        <button
                             onClick={resetAllData}
                             disabled={isDownloading}
                             className="px-4 py-2 text-sm font-medium rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center gap-2 transition-colors duration-200 disabled:opacity-50"
