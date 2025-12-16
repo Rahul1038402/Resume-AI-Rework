@@ -63,14 +63,14 @@ const ResumeUploader = ({ onFileSelected }: ResumeUploaderProps) => {
 
   return (
     <Card 
-      className={`p-8 border-2 border-dashed ${isDragging ? 'border-resume-secondary bg-resume-light dark:bg-gray-800/50' : 'border-gray-300 dark:border-gray-700'} rounded-lg transition-colors dark:bg-gray-800`}
+      className={`p-8 border-2 border-dashed rounded-t-md ${isDragging ? 'border-resume-secondary bg-resume-light dark:bg-gray-800/50' : 'border-gray-300 dark:border-gray-700'} transition-colors bg-transparent`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className="text-center">
         <div className="mb-6">
-          <div className="w-16 h-16 mx-auto bg-resume-light dark:bg-gray-700 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto bg-resume-light dark:bg-gray-700 flex items-center justify-center">
             <FileUp className="h-8 w-8 text-resume-primary dark:text-resume-secondary" />
           </div>
         </div>
@@ -80,7 +80,7 @@ const ResumeUploader = ({ onFileSelected }: ResumeUploaderProps) => {
         </h3>
         
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {fileName || 'Drop your PDF or DOCX file here, or click to browse'}
+          {fileName || 'Drag and drop your PDF or DOCX file here, or click to browse'}
         </p>
         
         <div className="relative">
