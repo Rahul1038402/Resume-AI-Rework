@@ -72,10 +72,10 @@ export const LayoutSettings = ({
                                    focus:shadow-[0_0_6px_rgba(26,54,93,0.4)] dark:focus:shadow-[0_0_6px_rgba(56,178,172,0.4)] 
                                    outline-none focus:outline-none transition-all duration-150"
                     >
-                        <option value='"CMU Serif", "Computer Modern Serif", Georgia, serif'>CMU Serif [Recommended]</option>
+                        <option value="Georgia, serif">Georgia</option>
                         <option value="Arial, sans-serif">Arial</option>
                         <option value="'Times New Roman', serif">Times New Roman</option>
-                        <option value="Georgia, serif">Georgia</option>
+                        <option value='"CMU Serif", "Computer Modern Serif", Georgia, serif'>CMU Serif</option>
                         <option value="'Courier New', monospace">Courier New</option>
                     </select>
                 </div>
