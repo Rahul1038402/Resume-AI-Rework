@@ -184,7 +184,7 @@ function ResumeBuilder() {
     return (
         <>
             <Header />
-            <div className="flex flex-col pt-48">
+            <div className="flex flex-col pt-28">
                 {/* Top Controls */}
                 <TopControls
                     activeTab={activeTab}
