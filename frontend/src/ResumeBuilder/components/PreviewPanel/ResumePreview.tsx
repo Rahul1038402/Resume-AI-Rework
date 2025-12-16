@@ -8,7 +8,7 @@ interface ResumePreviewProps {
 export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps) => {
     // Calculate relative sizes based on the base font size
     const base = layoutSettings.fontSize; // Base font size in px
-    
+
     const sizes = {
         name: base * 2.18,        // 24pt equivalent when base is 11px
         jobTitle: base * 1.27,    // 14pt equivalent
@@ -126,6 +126,11 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
                     ...resumeData.skills.categories.map(cat => cat.name.length)
                 );
                 const labelWidth = `${longestCategory * 7 + 10}pt`;
+
+                const validSkills = resumeData.skills.categories.filter(cat =>
+                    cat.name.trim() || cat.value.trim()
+                );
+                if (validSkills.length === 0) return null;
 
                 return (
                     <div style={{ marginBottom: '10pt' }}>
@@ -362,119 +367,144 @@ export const ResumePreview = ({ resumeData, layoutSettings }: ResumePreviewProps
             })()}
 
             {/* Education */}
-            {resumeData.education.length > 0 && (
-                <div style={{ marginBottom: '10pt' }}>
-                    <h2 style={{
-                        fontSize: `${sizes.sectionHeader}px`,
-                        textTransform: 'uppercase',
-                        textAlign: 'left',
-                        fontWeight: 'normal',
-                        marginBottom: '0',
-                        paddingBottom: '1pt',
-                        borderBottom: '0.4pt solid black',
-                        marginTop: '10pt'
-                    }}>
-                        Education</h2>
-                    <div style={{
-                        fontSize: `${sizes.education}px`,
-                        marginTop: '6pt',
-                        fontWeight: 'normal'
-                    }}>
-                        {resumeData.education.map((edu) => (
-                            <div key={edu.id} style={{
-                                marginBottom: '6pt',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'baseline'
-                            }}>
-                                <div>
-                                    <span style={{ fontWeight: 'normal', marginLeft: '1em' }}>
-                                        {edu.degree} in{' '}
-                                    </span>
-                                    <span style={{ fontWeight: 'bold' }}>
-                                        {edu.field}
-                                    </span>
-                                    <span style={{ fontWeight: 'normal' }}>
-                                        {' '}at{' '}
-                                    </span>
-                                    <span style={{ fontWeight: 'bold' }}>
-                                        {edu.institution}
-                                    </span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1em', whiteSpace: 'nowrap' }}>
-                                    {edu.gpa && (
-                                        <span style={{ fontWeight: 'normal' }}>
-                                            (GPA: {edu.gpa})
+            {resumeData.education.length > 0 && (() => {
+                const validEducation = resumeData.education.filter(edu =>
+                    edu.institution.trim() ||
+                    edu.degree.trim() ||
+                    edu.field.trim() ||
+                    edu.startDate.trim() ||
+                    edu.endDate.trim() ||
+                    edu.gpa.trim()
+                );
+
+                if (validEducation.length === 0) return null;
+
+                return (
+                    <div style={{ marginBottom: '10pt' }}>
+                        <h2 style={{
+                            fontSize: `${sizes.sectionHeader}px`,
+                            textTransform: 'uppercase',
+                            textAlign: 'left',
+                            fontWeight: 'normal',
+                            marginBottom: '0',
+                            paddingBottom: '1pt',
+                            borderBottom: '0.4pt solid black',
+                            marginTop: '10pt'
+                        }}>
+                            Education
+                        </h2>
+                        <div style={{
+                            fontSize: `${sizes.education}px`,
+                            marginTop: '6pt',
+                            fontWeight: 'normal'
+                        }}>
+                            {validEducation.map((edu) => (
+                                <div key={edu.id} style={{
+                                    marginBottom: '6pt',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'baseline'
+                                }}>
+                                    <div>
+                                        <span style={{ fontWeight: 'normal', marginLeft: '1em' }}>
+                                            {edu.degree} in{' '}
                                         </span>
-                                    )}
-                                    <span style={{ fontWeight: 'normal' }}>
-                                        {edu.startDate ? `${edu.startDate} - ${edu.endDate}` : edu.endDate}
-                                    </span>
+                                        <span style={{ fontWeight: 'bold' }}>
+                                            {edu.field}
+                                        </span>
+                                        <span style={{ fontWeight: 'normal' }}>
+                                            {' '}at{' '}
+                                        </span>
+                                        <span style={{ fontWeight: 'bold' }}>
+                                            {edu.institution}
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1em', whiteSpace: 'nowrap' }}>
+                                        {edu.gpa && (
+                                            <span style={{ fontWeight: 'normal' }}>
+                                                (GPA: {edu.gpa})
+                                            </span>
+                                        )}
+                                        <span style={{ fontWeight: 'normal' }}>
+                                            {edu.startDate ? `${edu.startDate} - ${edu.endDate}` : edu.endDate}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {/* Certifications & Achievements */}
-            {resumeData.certifications.length > 0 && (
-                <div style={{ marginBottom: '10pt' }}>
-                    <h2 style={{
-                        fontSize: `${sizes.sectionHeader}px`,
-                        textTransform: 'uppercase',
-                        textAlign: 'left',
-                        fontWeight: 'normal',
-                        marginBottom: '0',
-                        paddingBottom: '1pt',
-                        borderBottom: '0.4pt solid black',
-                        marginTop: '10pt'
-                    }}>
-                        Certifications & Achievements
-                    </h2>
-                    <ul style={{
-                        fontSize: `${sizes.body}px`,
-                        marginTop: '6pt',
-                        marginBottom: '0',
-                        marginLeft: '1em',
-                        paddingLeft: '0',
-                        listStyleType: 'none',
-                        fontWeight: 'normal'
-                    }}>
-                        {resumeData.certifications.map((cert) => (
-                            <li key={cert.id} style={{
-                                lineHeight: '1.3',
-                                marginBottom: '3pt',
-                                position: 'relative',
-                                paddingLeft: '1.2em',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'baseline'
-                            }}>
-                                <span style={{
-                                    position: 'absolute',
-                                    left: '0'
-                                }}>•</span>
-                                <span>
-                                    {cert.name}
-                                    {cert.issuer && ` – ${cert.issuer}`}
-                                    {cert.date && ` (${cert.date})`}
-                                </span>
-                                {cert.link && (
-                                    <a href={cert.link} target='_blank' style={{
-                                        color: 'rgb(0, 51, 153)',
-                                        textDecoration: 'none',
-                                        marginLeft: '1em',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        View Credential
-                                    </a>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+            {resumeData.certifications.length > 0 && (() => {
+                const validcertification = resumeData.certifications.filter(cert =>
+                    cert.name.trim() ||
+                    cert.issuer.trim() ||
+                    cert.date.trim() ||
+                    cert.link.trim()
+                );
+
+                if (validcertification.length === 0) return null;
+
+                return (
+                    <div style={{ marginBottom: '10pt' }}>
+                        <h2 style={{
+                            fontSize: `${sizes.sectionHeader}px`,
+                            textTransform: 'uppercase',
+                            textAlign: 'left',
+                            fontWeight: 'normal',
+                            marginBottom: '0',
+                            paddingBottom: '1pt',
+                            borderBottom: '0.4pt solid black',
+                            marginTop: '10pt'
+                        }}>
+                            Certifications & Achievements
+                        </h2>
+                        <ul style={{
+                            fontSize: `${sizes.body}px`,
+                            marginTop: '6pt',
+                            marginBottom: '0',
+                            marginLeft: '1em',
+                            paddingLeft: '0',
+                            listStyleType: 'none',
+                            fontWeight: 'normal'
+                        }}>
+                            {resumeData.certifications.map((cert) => (
+                                <li key={cert.id} style={{
+                                    lineHeight: '1.3',
+                                    marginBottom: '3pt',
+                                    position: 'relative',
+                                    paddingLeft: '1.2em',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'baseline'
+                                }}>
+                                    <span style={{
+                                        position: 'absolute',
+                                        left: '0'
+                                    }}>•</span>
+                                    <span>
+                                        {cert.name}
+                                        {cert.issuer && ` – ${cert.issuer}`}
+                                        {cert.date && ` (${cert.date})`}
+                                    </span>
+                                    {cert.link && (
+                                        <a href={cert.link} target='_blank' style={{
+                                            color: 'rgb(0, 51, 153)',
+                                            textDecoration: 'none',
+                                            marginLeft: '1em',
+                                            whiteSpace: 'nowrap'
+                                        }}>
+                                            View Credential
+                                        </a>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )
+            })()}
         </div>
     );
 };
