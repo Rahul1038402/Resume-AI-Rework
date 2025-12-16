@@ -24,18 +24,79 @@ const getDefaultResumeData = (): ResumeData => ({
     },
     summary: '',
     skills: {
-        categories: []
+        categories: [
+            {
+                id: Date.now().toString(),
+                name: '',
+                value: ''
+            }
+        ]
     },
-    projects: [],
-    experience: [],
-    education: [],
-    certifications: []
+    projects: [
+        {
+            id: Date.now().toString(),
+            title: '',
+            technologies: '',
+            description: [''],
+            link: ''
+        }
+    ],
+    experience: [
+        {
+            id: Date.now().toString(),
+            position: '',
+            company: '',
+            location: '',
+            startDate: '',
+            endDate: '',
+            achievements: ['']
+        }
+    ],
+    education: [
+        {
+            id: Date.now().toString(),
+            institution: '',
+            degree: '',
+            field: '',
+            startDate: '',
+            endDate: '',
+            gpa: ''
+        }
+    ],
+    certifications: [
+        {
+            id: Date.now().toString(),
+            name: '',
+            issuer: '',
+            date: '',
+            credentialId: '',
+            link: ''
+        }
+    ]
 });
 
 const loadFromLocalStorage = (): ResumeData | null => {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : null;
+        if (!saved) return null;
+        
+        const savedData = JSON.parse(saved);
+        const defaultData = getDefaultResumeData();
+        
+        // Ensure arrays have at least one default item if they're empty
+        return {
+            ...savedData,
+            // Keep saved data if it has items, otherwise use default (which has 1 item)
+            education: savedData.education?.length > 0 ? savedData.education : defaultData.education,
+            experience: savedData.experience?.length > 0 ? savedData.experience : defaultData.experience,
+            projects: savedData.projects?.length > 0 ? savedData.projects : defaultData.projects,
+            certifications: savedData.certifications?.length > 0 ? savedData.certifications : defaultData.certifications,
+            skills: {
+                categories: savedData.skills?.categories?.length > 0 
+                    ? savedData.skills.categories 
+                    : defaultData.skills.categories
+            }
+        };
     } catch (error) {
         console.error(`Error loading ${STORAGE_KEY}:`, error);
         return null;
@@ -116,17 +177,17 @@ export const useResumeData = () => {
     };
 
     const replaceAllSkillCategories = (categories: SkillCategory[]) => {
-    setResumeData(prev => ({
-        ...prev,
-        skills: {
-            ...prev.skills,
-            categories: categories.map(cat => ({
-                ...cat,
-                id: cat.id || Date.now().toString() + Math.random()
-            }))
-        }
-    }));
-};
+        setResumeData(prev => ({
+            ...prev,
+            skills: {
+                ...prev.skills,
+                categories: categories.map(cat => ({
+                    ...cat,
+                    id: cat.id || Date.now().toString() + Math.random()
+                }))
+            }
+        }));
+    };
 
     // Projects
     const addProject = () => {
