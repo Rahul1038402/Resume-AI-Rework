@@ -1,4 +1,9 @@
-# Resume AI - Smart Resume Analyzer & Builder
+# ResumeAI - Smart Resume Analyzer & Builder ![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)
+
+> ⚠️ **License Notice**
+>  
+> This project is licensed under **CC BY-NC 4.0**.  
+> Commercial use (SaaS, paid products, APIs) is strictly prohibited.
 
 A comprehensive resume management platform that helps job seekers optimize their resumes, create ATS-friendly documents, and track applications efficiently.
 
@@ -58,6 +63,18 @@ A comprehensive resume management platform that helps job seekers optimize their
 ### Contact Me
 <a href="mailto:rahul1038402@gmail.com" target="_blank">Email</a>
 
+## License
+
+⚠️ **Non-Commercial License**
+
+This project is licensed under **Creative Commons BY-NC 4.0**.
+
+- ❌ Commercial use is NOT allowed
+- ❌ Selling, SaaS usage, or paid services are forbidden
+- ✅ Personal, educational, and portfolio use is allowed
+
+For commercial licensing, contact: rahul1038402@gmail.com
+
 
 ## 🙏 Acknowledgments
 
@@ -65,5 +82,4 @@ A comprehensive resume management platform that helps job seekers optimize their
 - **Vercel** and **Render** for reliable hosting solutions
 
 ---
-
 **Made with ❤️ for job seekers everywhere**
