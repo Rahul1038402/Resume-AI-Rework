@@ -1,14 +1,13 @@
 import { Link } from "react-router-dom";
 import Orb from '@/components/ui/Orb';
-import GradientText from '../ui/GradientText';
 import { Logo } from "./Logo";
 import { Twitter, Linkedin, Github } from 'lucide-react';
 
 const Footer = () => {
   const socialLinks = [
-    { icon: Twitter, href: "https://twitter.com/yourhandle", label: "Twitter" },
-    { icon: Linkedin, href: "https://linkedin.com/in/yourprofile", label: "LinkedIn" },
-    { icon: Github, href: "https://github.com/yourusername", label: "GitHub" }
+    { icon: Twitter, href: "https://x.com/Rahul_Kr_Mall", label: "Twitter" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/rahul-malll-85989327b/", label: "LinkedIn" },
+    { icon: Github, href: "https://github.com/Rahul1038402", label: "GitHub" }
   ];
 
   return (
