@@ -7,7 +7,7 @@ const getDefaultLayoutSettings = (): LayoutSettings => ({
     fontSize: 12,
     lineHeight: '1.2',
     pageSize: 'A4',
-    fontFamily: '"CMU Serif", "Computer Modern Serif", Georgia, serif',
+    fontFamily: 'Georgia, "CMU Serif", "Computer Modern Serif", serif',
     margins: {
         left: 20,
         right: 20,
