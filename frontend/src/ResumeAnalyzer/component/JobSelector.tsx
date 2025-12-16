@@ -55,7 +55,7 @@ const JobSelector = ({ onJobSelected }: JobSelectorProps) => {
   };
 
   return (
-    <Card>
+    <Card className="bg-transparent rounded-b-md border border-gray-200 dark:border-gray-700">
       <CardContent className="pt-6">
         <h3 className="text-lg text-resume-primary dark:text-resume-secondary mb-4">Select Target Job</h3>
 

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, X } from "lucide-react";
 import GradientText from "@/components/ui/GradientText";
 import Loader from "@/components/common/Loader";
+import ShinyText from "@/components/ui/ShinyText";
 {/* const GalaxyAttackGame = lazy(() => import("@/components/GalaxyAttack")); */}
 
 //Gaming ke lazy loading and reduce chunk size
@@ -205,10 +206,9 @@ const Analyzer = () => {
               <JobSelector onJobSelected={handleJobSelected} />
             </div>
 
-            <Card className="bg-resume-light dark:bg-gray-800 p-6 text-center">
-              <Button
-                className="w-full sm:w-auto bg-resume-primary hover:bg-resume-primary/90 dark:bg-resume-secondary dark:hover:bg-resume-secondary/90 px-8"
-                size="lg"
+            <Card className="bg-transparent rounded-lg p-6 text-center">
+              <button
+                className="dark:bg-gray-800/80 rounded-lg border bg-resume-primary hover:bg-resume-primary/90 hover:dark:bg-gray-800/60 dark:border-gray-700 px-4 h-[60px] font-medium cursor-pointer transition-all duration-300"
                 onClick={() => startAnalysisWithGame(false)}
                 disabled={!file || isAnalyzing}
               >
@@ -218,9 +218,11 @@ const Analyzer = () => {
                     Analyzing...
                   </>
                 ) : (
-                  "Analyze Resume"
+                  <span className="flex items-center justify-center">
+                    <ShinyText text="Analyze Resume" disabled={false} speed={5} className="text-lg" />
+                  </span>
                 )}
-              </Button>
+              </button>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 z-0">
                 We'll analyze your resume against {targetJob || "general"} requirements. <br/>
               </p>

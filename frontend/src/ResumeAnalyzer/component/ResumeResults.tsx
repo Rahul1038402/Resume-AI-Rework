@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +67,7 @@ const ResumeResults = ({ result, loading, error }: ResumeResultsProps) => {
     return (
       <Alert>
         <Info className="h-4 w-4 mt-2" />
-        <AlertTitle className="flex items-center gap-2">
+        <AlertTitle className="flex items-center gap-2 justify-between">
           <span>Ready to analyze</span>
           <span className="flex items-center gap-1 text-green-600 text-sm font-medium border border-green-600 rounded-xl p-1">
             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
