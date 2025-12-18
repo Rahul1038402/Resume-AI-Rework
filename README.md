@@ -15,8 +15,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 
 ## 🚀 Live Demo
 
-- **Frontend**: [https://resume-ai-rework.vercel.app](https://resume-ai-rework.vercel.app)
-- **Backend API**: [https://resume-ai-rework.onrender.com](https://resume-ai-rework.onrender.com)
+- **Check it out here**: [https://resume-ai-rework.vercel.app](https://resume-ai-rework.vercel.app)
 
 ## ✨ Features
 
@@ -29,6 +28,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 - **Modern Templates**: Choose from ATS-optimized, professional templates
 - **Quick Creation**: Build polished resumes in minutes
 - **Customizable Sections**: Highlight your strengths and tailor content
+- **AI Assisted Mode**: Use AI assisted feature that suggests content for adding to section as per your description
 - **Download Ready**: Export ready-to-use PDF resumes
 
 ### 📋 Application Tracker (Working on to automate the working)
@@ -60,8 +60,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 
 ## 🤝 Contributing
 
-### Contact Me
-<a href="mailto:rahul1038402@gmail.com" target="_blank">Email</a>
+- **Contact Me**: <a href="mailto:rahul1038402@gmail.com" target="_blank">Email</a>
 
 ## License
 
@@ -74,12 +73,6 @@ This project is licensed under **Creative Commons BY-NC 4.0**.
 - ✅ Personal, educational, and portfolio use is allowed
 
 For commercial licensing, contact: rahul1038402@gmail.com
-
-
-## 🙏 Acknowledgments
-
-- **Supabase** for backend-as-a-service platform
-- **Vercel** and **Render** for reliable hosting solutions
 
 ---
 **Made with ❤️ for job seekers everywhere**
