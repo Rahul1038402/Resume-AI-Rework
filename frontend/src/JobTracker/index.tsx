@@ -406,7 +406,7 @@ const JobTracker = () => {
 
     return (
         <Layout>
-            <div className="pt-12 bg-background">
+            <div className="pt-28 bg-background">
                 <div className="text-center mb-4">
                     <GradientText
                         colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
@@ -982,5 +982,3 @@ const JobTracker = () => {
 };
 
 export default JobTracker;
-
-
