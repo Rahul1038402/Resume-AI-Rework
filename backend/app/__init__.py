@@ -32,11 +32,11 @@ def create_app():
 
     from app.routes.routes import routes
     from app.routes.ai_assistant import ai_bp
-    #from app.gmail_routes import gmail_routes
+    from app.gmail_routes import gmail_routes
     
     # Register routes
     app.register_blueprint(routes)
-    #app.register_blueprint(gmail_routes)
+    app.register_blueprint(gmail_routes)
     app.register_blueprint(ai_bp)
     
     return app
