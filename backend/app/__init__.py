@@ -12,7 +12,7 @@ def create_app():
                 "http://localhost:8080",
                 "http://localhost:3000",  # Added for React dev server
                 "https://resume-ai-rework.vercel.app",
-                "http://resumeai.live"
+                "https://resumeai.live"
             ],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"]
