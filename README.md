@@ -15,7 +15,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 
 ## 🚀 Live Demo
 
-- **Check it out here**: [https://resume-ai-rework.vercel.app](https://resume-ai-rework.vercel.app)
+- **Check it out here**: [https://resumeai.live](https://resumeai.live)
 
 ## ✨ Features
 
