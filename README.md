@@ -13,30 +13,30 @@ A comprehensive resume management platform that helps job seekers optimize their
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=white)
 
-## 🚀 Live Demo
+## Live Demo
 
 - **Check it out here**: [https://resumeai.live](https://resumeai.live)
 
-## ✨ Features
+## Features
 
-### 📊 Resume Analysis
+### Resume Analysis
 - **AI-Powered Analysis**: Instantly analyze your resume against job descriptions
 - **ATS Optimization**: Get personalized feedback on keywords, skills, and formatting
 - **Smart Recommendations**: Receive actionable insights to make your resume job-ready
 
-### 📝 Resume Builder
+### Resume Builder
 - **Modern Templates**: Choose from ATS-optimized, professional templates
 - **Quick Creation**: Build polished resumes in minutes
 - **Customizable Sections**: Highlight your strengths and tailor content
 - **AI Assisted Mode**: Use AI assisted feature that suggests content for adding to section as per your description
 - **Download Ready**: Export ready-to-use PDF resumes
 
-### 📋 Application Tracker (Working on to automate the working)
+### Application Tracker (Working on to automate the working)
 - **Centralized Management**: Store and organize all job applications
 - **Comprehensive Details**: Track company, role, platform, resume used, dates, and status
 - **Progress Monitoring**: Keep tabs on your job search progress
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **React 18** - Modern UI library
@@ -58,7 +58,7 @@ A comprehensive resume management platform that helps job seekers optimize their
 - **Vercel** - Frontend hosting
 - **Render** - Backend API hosting
 
-## 🤝 Contributing
+## Contributing
 
 - **Contact Me**: <a href="mailto:rahul1038402@gmail.com" target="_blank">Email</a>
 
@@ -75,4 +75,3 @@ This project is licensed under **Creative Commons BY-NC 4.0**.
 For commercial licensing, contact: rahul1038402@gmail.com
 
 ---
-**Made with ❤️ for job seekers everywhere**
